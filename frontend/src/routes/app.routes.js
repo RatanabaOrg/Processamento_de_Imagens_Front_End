@@ -1,36 +1,47 @@
 import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Login from '../pages/Login';
 import Clientes from '../pages/Clientes/clientes';
-import Editar from '../pages/Clientes/editar';
+import EditarCliente from '../pages/Clientes/editarCliente';
+import Feather from 'react-native-vector-icons/Feather'
+import EditarClienteEndereco from '../pages/Clientes/editarClienteEndereco';
+import Fazendas from '../pages/Fazendas/verFazendas'
+import Perfil from '../pages/Perfil'
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-function StackRoutes(){
-  return(
-    <Stack.Navigator>
-      <Stack.Screen 
-      name="Editar" 
-      component={Editar} 
-      options={{ headerShown: false }}
-      />
-    </Stack.Navigator>
-  )
-}
-
-
-function AppRoutes(){
-  return(
+const MainTabNavigator = () => {
+  return (
     <Tab.Navigator>
-      <Tab.Screen 
-      name="Clientes" 
-      component={Clientes} 
-      />
+      <Tab.Screen name="Clientes" component={Clientes} 
+      options={{ headerShown: false, tabBarIcon: ({ color, size }) => {
+          return <Feather name="users" color={'#000'} size={30} />
+      }}} />
+      <Tab.Screen name="Fazendas" component={Fazendas} 
+      options={{ headerShown: false, tabBarIcon: ({ color, size }) => {
+          return <Feather name="users" color={'#000'} size={30} />
+      }}} />
+      <Tab.Screen name="Perfil" component={Perfil} 
+      options={{ headerShown: false, tabBarIcon: ({ color, size }) => {
+          return <Feather name="users" color={'#000'} size={30} />
+      }}} />
     </Tab.Navigator>
-  )
-}
+  );
+};
 
-export default AppRoutes;
+export default function AppRoutes() {
+  return (
+    <Stack.Navigator initialRouteName="Login">
+      <Stack.Screen
+        name="Login"
+        component={Login}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name="Main" component={MainTabNavigator} options={{ headerShown: false }} />
+      <Stack.Screen name="EditarCliente" component={EditarCliente} options={{ headerShown: false }} />
+      <Stack.Screen name="EditarClienteEndereco" component={EditarClienteEndereco} options={{ headerShown: false }} />
+    </Stack.Navigator>
+  );
+}

@@ -2,70 +2,63 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-export default function  Clientes() {
+export default function  VerFazendas() {
 
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredClientes, setFilteredClientes] = useState([]);
+  const [filteredFazendas, setFilteredFazendas] = useState([]);
 
-  const clientes = [
-    { id: 1, nome: 'Cliente 1', foto: 'https://example.com/foto1.jpg' },
-    { id: 2, nome: 'Cliente 2', foto: 'https://example.com/foto2.jpg' },
-    { id: 3, nome: 'Cliente 3', foto: 'https://example.com/foto3.jpg' },
-    { id: 4, nome: 'Cliente 1', foto: 'https://example.com/foto1.jpg' },
-    { id: 5, nome: 'Cliente 2', foto: 'https://example.com/foto2.jpg' },
-    { id: 6, nome: 'Cliente 3', foto: 'https://example.com/foto3.jpg' },
-    { id: 7, nome: 'Cliente 1', foto: 'https://example.com/foto1.jpg' },
-    { id: 8, nome: 'Cliente 2', foto: 'https://example.com/foto2.jpg' },
-    { id: 9, nome: 'Cliente 3', foto: 'https://example.com/foto3.jpg' },
+  const fazendas = [
+    { id: 1, nome: 'Fazenda 1', agricultor: 'Luiz Silva', cor: 'blue' },
+    { id: 2, nome: 'Fazenda 2', agricultor: 'Luiz Silva', cor: 'blue' },
+    { id: 3, nome: 'Fazenda 3', agricultor: 'Luiz Silva', cor: 'blue' },
+    { id: 4, nome: 'Fazenda 4', agricultor: 'Luiz Silva', cor: 'blue' },
+    { id: 5, nome: 'Fazenda 5', agricultor: 'Luiz Silva', cor: 'blue' },
+    { id: 6, nome: 'Fazenda 6', agricultor: 'Luiz Silva', cor: 'blue' },
+    { id: 7, nome: 'Fazenda 7', agricultor: 'Luiz Silva', cor: 'blue' },
+    { id: 8, nome: 'Fazenda 8', agricultor: 'Luiz Silva', cor: 'blue' },
+    { id: 9, nome: 'Fazenda 9', agricultor: 'Luiz Silva', cor: 'blue' },
   ];
 
-  const handleClient = (clienteId) => {
-    navigation.navigate('EditarCliente', { clienteId: clienteId });
+  const handleFazenda = (fazendaId) => {
+    navigation.navigate('EditarFazenda', { fazendaId: fazendaId });
   };
 
   useEffect(() => {
-    setFilteredClientes(clientes);
+    setFilteredFazendas(fazendas);
   }, []);
   
   const handleSearch = () => {
     if (searchQuery.trim() === '') {
-      setFilteredClientes(clientes);
+      setFilteredFazendas(fazendas);
     } else {
-      const filtered = clientes.filter(cliente => cliente.nome.toLowerCase().includes(searchQuery.toLowerCase()));
-      setFilteredClientes(filtered);
+      const filtered = fazendas.filter(fazenda => fazenda.nome.toLowerCase().includes(searchQuery.toLowerCase()));
+      setFilteredFazendas(filtered);
     }
   };
+
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.firstHalf}>
         <View style={styles.firstHalfContent}>
-          <Text style={styles.title}>Últimos clientes</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
-            
-            {clientes.map((cliente, index) => (
-              <TouchableOpacity key={index} style={styles.clienteCircle}>
-                <Image source={{ uri: cliente.foto }} style={styles.clienteFoto} />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          <Text style={styles.title}>Fazendas</Text>
         </View>
       </View>
       <View style={styles.secondHalf}>
         <TextInput
           style={styles.input}
-          placeholder="Pesquisar cliente"
+          placeholder="Pesquisar fazenda"
           onChangeText={setSearchQuery}
           onSubmitEditing={handleSearch}
           value={searchQuery}
         />
         <ScrollView contentContainerStyle={styles.clienteContainer}>
-          {filteredClientes.map(cliente => (
-            <TouchableOpacity key={cliente.id} style={styles.cliente} onPress={() => handleClient(cliente.id)}>
+          {filteredFazendas.map(fazenda => (
+            <TouchableOpacity key={fazenda.id} style={styles.cliente} onPress={() => handleFazenda(fazenda.id)}>
               <View style={styles.clienteContent}>
-                <Image source={{ uri: cliente.foto }} style={styles.cliFoto} />
-                <Text style={styles.clienteNome}>{cliente.nome}</Text>
+                <Image source={{ uri: fazenda.cor }} style={styles.cliFoto} />
+                <Text style={styles.clienteNome}>{fazenda.nome}</Text>
                 <TouchableOpacity style={styles.arrowIcon} onPress={() => handleClientClick(cliente.id)}>
                   {/* Implementar ícone de seta */}
                 </TouchableOpacity>
@@ -73,8 +66,8 @@ export default function  Clientes() {
             </TouchableOpacity>
           ))}
         </ScrollView>
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Aprovar contas</Text>
+        <TouchableOpacity style={styles.button} >
+          <Text style={styles.buttonText}>Adicionar fazenda</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -87,7 +80,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF8C00',
   },
   firstHalf: {
-    flex: 2.5,
+    flex: 1.7,
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
@@ -95,9 +88,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 15,
     color: "#fff"
   },
   carousel: {
@@ -118,7 +110,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
   },
   secondHalf: {
-    flex: 7.5,
+    flex: 8.3,
     backgroundColor: '#E9EEEB',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,

@@ -6,7 +6,7 @@ export default function Login() {
   const navigation = useNavigation();
 
   const handleLogin = () => {
-    navigation.navigate('Clientes');
+    navigation.navigate('Main', {screen: 'Clientes'});
   };
 
   return (
