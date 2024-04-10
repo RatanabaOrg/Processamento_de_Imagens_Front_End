@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "335544392112",
+    "project_id": "ratanaba5",
+    "storage_bucket": "ratanaba5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:335544392112:android:9e6ad9e91568c9e1c2de75",
+        "android_client_info": {
+          "package_name": "com.frontend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDae_xBSBtHl7G2iRD_1yEE3R70aUD3Ubk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 
-export default function EditarCliente() {
+export default function VerConta() {
   const navigation = useNavigation();
   const route = useRoute();
   const [cliente, setCliente] = useState(null);
@@ -21,9 +21,6 @@ export default function EditarCliente() {
     { id: 9, nome: 'Cliente 9', foto: 'https://example.com/foto1.jpg' },
   ];
 
-  const handleNextPage = (clienteId) => {
-    navigation.navigate('EditarClienteEndereco', { clienteId: clienteId });
-  };
 
   useEffect(() => {
     const { clienteId } = route.params;
@@ -39,28 +36,52 @@ export default function EditarCliente() {
             <View style={styles.firstHalfContent}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackContainer}>
                 <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
-                <Text style={styles.title}>Ver/Editar {cliente.nome}</Text>
+                <Text style={styles.title}>Ver/Editar conta</Text>
               </TouchableOpacity>
               <Image source={{ uri: cliente.foto }} style={styles.clienteFoto} />
             </View>
           )}
         </View>
       </View>
+
       <View style={styles.secondHalf}>
-        <View style={styles.secondHalfInputs}>
-          <Text style={styles.label}>Nome</Text>
-          <TextInput style={styles.input} placeholder="Seu nome" />
-          <Text style={styles.label}>Email</Text>
-          <TextInput style={styles.input} placeholder="Seu email" />
-          <Text style={styles.label}>Telefone</Text>
-          <TextInput style={styles.input} placeholder="Seu telefone" />
-        </View>
+        <ScrollView contentContainerStyle={styles.clienteContainer}>
+          <View style={styles.secondHalfInputs}>
+            <Text style={styles.label}>Nome</Text>
+            <TextInput style={styles.input} placeholder="Seu nome" />
+            <Text style={styles.label}>Email</Text>
+            <TextInput style={styles.input} placeholder="Seu email" />
+            <Text style={styles.label}>Telefone</Text>
+            <TextInput style={styles.input} placeholder="Seu telefone" />
+            <Text style={styles.label}>CEP</Text>
+            <TextInput style={styles.input} placeholder="Seu cep" />
+            <Text style={styles.label}>Logradouro</Text>
+            <TextInput style={styles.input} placeholder="Seu logradouro" />
+            <Text style={styles.label}>Numero</Text>
+            <TextInput style={styles.input} placeholder="Seu número" />
+            <Text style={styles.label}>Bairro</Text>
+            <TextInput style={styles.input} placeholder="Seu bairro" />
+            <View style={styles.cidadeEUF}>
+              <View>
+                <Text style={styles.label}>Cidade</Text>
+                <TextInput style={styles.inputCidade} placeholder="Sua cidade" />
+              </View>
+              <View>
+                <Text style={styles.label}>UF</Text>
+                <TextInput style={styles.inputUF} placeholder="UF" />
+              </View>
+            </View>
+            <Text style={styles.label}>Complemento</Text>
+            <TextInput style={styles.input} placeholder="Seu complemento" />
+          </View>
+        </ScrollView>
+
         <View style={styles.secondHalfButtons}>
           <TouchableOpacity style={styles.buttonDeletar}>
             <Text style={styles.buttonText}>Deletar cliente</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.buttonProximo} onPress={() => handleNextPage(cliente.id)}>
-            <Text style={styles.buttonText}>Próximo</Text>
+          <TouchableOpacity style={styles.buttonAprovar}>
+            <Text style={styles.buttonText}>Aprovar</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -122,11 +143,35 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     paddingHorizontal: 10,
   },
+  cidadeEUF: {
+    flexDirection: 'row'
+  },
+  inputCidade: {
+    height: 44,
+    fontSize: 15,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    marginBottom: 8,
+    paddingHorizontal: 10,
+    minWidth: 280,
+    marginRight: 8,
+  },
+  inputUF: {
+    height: 44,
+    fontSize: 15,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    marginBottom: 8,
+    paddingHorizontal: 10,
+    minWidth: 61
+  },
   secondHalfButtons: {
     flexDirection: 'row',
     marginTop: 18,
+    marginBottom: 18,
     justifyContent: 'space-between',
-    height: 44,
+    alignItems: 'center',
+    height: 88,
   },
   buttonDeletar: {
     backgroundColor: '#DE1B00',
@@ -134,13 +179,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     paddingVertical: 12,
     alignItems: 'center',
+    width: '48%',
+    height: 44,
   },
-  buttonProximo: {
+  buttonAprovar: {
     backgroundColor: '#2C8C1D',
     borderRadius: 10,
     paddingHorizontal: 56,
     paddingVertical: 12,
     alignItems: 'center',
+    width: '48%',
+    height: 44,
   },
   buttonText: {
     color: 'white',
