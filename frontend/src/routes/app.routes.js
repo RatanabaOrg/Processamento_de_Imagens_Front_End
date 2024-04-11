@@ -11,7 +11,9 @@ import EditarClienteEndereco from '../pages/Clientes/editarClienteEndereco';
 import AprovarContas from '../pages/Aprovar';
 import VerConta from '../pages/Aprovar/verConta';
 
-import Fazendas from '../pages/Fazendas/verFazendas';
+import Fazendas from '../pages/Fazendas';
+import CriarFazenda from '../pages/Fazendas/criarFazenda';
+import CriarFazendaCep from '../pages/Fazendas/criarFazendaCep';
 
 import Perfil from '../pages/Perfil';
 import EditarPerfil from '../pages/Perfil/editarPerfil';
@@ -63,6 +65,9 @@ export default function AppRoutes() {
       <Stack.Screen name="AprovarContas" component={AprovarContas} options={{ headerShown: false }} />
       <Stack.Screen name="VerConta" component={VerConta} options={{ headerShown: false }} />
 
+      
+      <Stack.Screen name="CriarFazenda" component={CriarFazenda} options={{ headerShown: false }} />
+      <Stack.Screen name="CriarFazendaCep" component={CriarFazendaCep} options={{ headerShown: false }} />
       
       <Stack.Screen name="EditarPerfil" component={EditarPerfil} options={{ headerShown: false }} />
     </Stack.Navigator>
