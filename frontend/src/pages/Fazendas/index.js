@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -15,8 +15,8 @@ export default function Fazendas() {
     { id: 2, nome: 'Fazenda Sul', agricultor: 'Fabi Souza' },
   ];
 
-  const handleFazenda = (clienteId) => {
-    navigation.navigate('EditarCliente', { clienteId: 1 });
+  const handleFazenda = (fazendaId) => {
+    navigation.navigate('VerFazenda', { fazendaId: fazendaId });
   };
 
   const handleCadastro = () => {
@@ -186,12 +186,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF8C00',
     borderRadius: 10,
     padding: 12,
-    alignItems: 'center',
     marginTop: 18,
     marginBottom: 18,
   },
   buttonText: {
     color: 'white',
     fontSize: 16,
+    textAlign: 'center',
   },
 });

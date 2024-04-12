@@ -14,6 +14,12 @@ import VerConta from '../pages/Aprovar/verConta';
 import Fazendas from '../pages/Fazendas';
 import CriarFazenda from '../pages/Fazendas/criarFazenda';
 import CriarFazendaCep from '../pages/Fazendas/criarFazendaCep';
+import VerFazenda from '../pages/Fazendas/fazenda';
+import EditarFazenda from '../pages/Fazendas/editarFazenda';
+
+import VerTalhao from '../pages/Talhoes/talhao';
+import EditarTalhao from '../pages/Talhoes/editarTalhao';
+import CriarTalhao from '../pages/Talhoes/criarTalhao';
 
 import Perfil from '../pages/Perfil';
 import EditarPerfil from '../pages/Perfil/editarPerfil';
@@ -65,9 +71,14 @@ export default function AppRoutes() {
       <Stack.Screen name="AprovarContas" component={AprovarContas} options={{ headerShown: false }} />
       <Stack.Screen name="VerConta" component={VerConta} options={{ headerShown: false }} />
 
-      
       <Stack.Screen name="CriarFazenda" component={CriarFazenda} options={{ headerShown: false }} />
       <Stack.Screen name="CriarFazendaCep" component={CriarFazendaCep} options={{ headerShown: false }} />
+      <Stack.Screen name="VerFazenda" component={VerFazenda} options={{ headerShown: false }} />
+      <Stack.Screen name="EditarFazenda" component={EditarFazenda} options={{ headerShown: false }} />
+
+      <Stack.Screen name="VerTalhao" component={VerTalhao} options={{ headerShown: false }} />
+      <Stack.Screen name="EditarTalhao" component={EditarTalhao} options={{ headerShown: false }} />
+      <Stack.Screen name="CriarTalhao" component={CriarTalhao} options={{ headerShown: false }} />
       
       <Stack.Screen name="EditarPerfil" component={EditarPerfil} options={{ headerShown: false }} />
     </Stack.Navigator>
