@@ -30,8 +30,8 @@ export default function VerTalhao() {
     navigation.navigate('EditarTalhao', { talhaoId: talhaoId });
   };
 
-  const handleArmadilha = (talhaoId) => {
-    navigation.navigate('VerTalhao', { talhaoId: talhaoId });
+  const handleArmadilha = (armadilhaId) => {
+    navigation.navigate('EditarArmadilha', { armadilhaId: armadilhaId });
   };
 
   const handleCadastro = () => {

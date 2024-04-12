@@ -4,30 +4,27 @@ import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 
-export default function EditarTalhao() {
+export default function EditarArmadilha() {
   const navigation = useNavigation();
   const route = useRoute();
-  const [talhao, settalhao] = useState(null);
+  const [armadilha, setArmadilha] = useState(null);
 
-  const talhoes = [
-    { id: 1, nome: 'Laranja', tipoPlantacao: 'Laranja' },
-    { id: 2, nome: 'Limão', tipoPlantacao: 'Limão' },
-    { id: 3, nome: 'Laranja', tipoPlantacao: 'Laranja' },
-    { id: 4, nome: 'Limão', tipoPlantacao: 'Limão' },
-    { id: 5, nome: 'Laranja', tipoPlantacao: 'Laranja' },
+  const armadilhas = [
+    { id: 1, nome: 'Armadilha 1' },
+    { id: 2, nome: 'Armadilha 2' },
   ];
 
-  const handleFazenda = (talhaoId) => {
-    navigation.navigate('VerFazenda', { talhaoId: talhaoId });
+  const handleTalhao = (armadilhaId) => {
+    navigation.navigate('VerTalhao', { armadilhaId: armadilhaId });
   };
 
   const handleDeletar = () => {
     Alert.alert(
-      `Deletar talhão`,
-      "Você realmente deseja deletar esse talhão? \n \nEssa ação é irreversível e irá apagar todos os dados relacionados ao talhão!",
+      `Deletar armadilha`,
+      "Você realmente deseja deletar essa armadilha? \n \nEssa ação é irreversível e irá apagar todos os dados!",
       [{
         text: "Confirmar",
-        onPress: () => { handleFazenda(talhao.id) }
+        onPress: () => { handleTalhao(armadilha.id) }
       },
       {
         text: "Cancelar",
@@ -41,20 +38,20 @@ export default function EditarTalhao() {
   };
 
   useEffect(() => {
-    const { talhaoId } = route.params;
-    const talhaoEncontrada = talhoes.find(talhao => talhao.id === talhaoId);
-    settalhao(talhaoEncontrada);
+    const { armadilhaId } = route.params;
+    const armadilhaEncontrada = armadilhas.find(armadilha => armadilha.id === armadilhaId);
+    setArmadilha(armadilhaEncontrada);
   }, [route.params]);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.firstHalf}>
         <View>
-          {talhao && (
+          {armadilha && (
             <View style={styles.firstHalfContent}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackContainer}>
                 <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
-                <Text style={styles.title}>Ver/Editar talhão</Text>
+                <Text style={styles.title}>Ver/Editar armadilha</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -66,20 +63,19 @@ export default function EditarTalhao() {
           <Text style={styles.label}>Nome</Text>
           <TextInput style={styles.input} placeholder="Nome" onChangeText={(text) => setNome(text)} />
 
-          <Text style={styles.label}>Tipo de plantação</Text>
+          <Text style={styles.label}>Latitude</Text>
           <TextInput style={styles.input}
-            placeholder="Tipo de plantação"
-            onChangeText={(text) => setTipoPlantacao(text)} />
+            placeholder="Latitude" onChangeText={(text) => setLatitude(text)} />
 
-          <Text style={styles.label}>Coordenadas</Text>
+          <Text style={styles.label}>Longitude</Text>
           <TextInput style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
-            placeholder="[[Latitude, Longitude],[Latitude, Longitude]]"
-            multiline={true} onChangeText={(text) => setCoordenadas(text)} />
+            placeholder="Longitude"
+            multiline={true} onChangeText={(text) => setLongitude(text)} />
         </View>
 
         <View style={styles.secondHalfButtons}>
           <TouchableOpacity style={styles.buttonDeletar} onPress={() => handleDeletar()}>
-            <Text style={styles.buttonText}>Deletar talhão</Text>
+            <Text style={styles.buttonText}>Deletar armadilha</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.buttonSalvar} onPress={() => handleSalvar()}>
             <Text style={styles.buttonText}>Salvar alterações</Text>

@@ -21,6 +21,9 @@ import VerTalhao from '../pages/Talhoes/talhao';
 import EditarTalhao from '../pages/Talhoes/editarTalhao';
 import CriarTalhao from '../pages/Talhoes/criarTalhao';
 
+import EditarArmadilha from '../pages/Armadilhas/editarArmadilha';
+import CriarArmadilha from '../pages/Armadilhas/criarArmadilha';
+
 import Perfil from '../pages/Perfil';
 import EditarPerfil from '../pages/Perfil/editarPerfil';
 
@@ -79,6 +82,9 @@ export default function AppRoutes() {
       <Stack.Screen name="VerTalhao" component={VerTalhao} options={{ headerShown: false }} />
       <Stack.Screen name="EditarTalhao" component={EditarTalhao} options={{ headerShown: false }} />
       <Stack.Screen name="CriarTalhao" component={CriarTalhao} options={{ headerShown: false }} />
+      
+      <Stack.Screen name="EditarArmadilha" component={EditarArmadilha} options={{ headerShown: false }} />
+      <Stack.Screen name="CriarArmadilha" component={CriarArmadilha} options={{ headerShown: false }} />
       
       <Stack.Screen name="EditarPerfil" component={EditarPerfil} options={{ headerShown: false }} />
     </Stack.Navigator>
