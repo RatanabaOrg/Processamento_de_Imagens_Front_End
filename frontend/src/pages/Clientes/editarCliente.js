@@ -7,39 +7,27 @@ import Feather from 'react-native-vector-icons/Feather';
 export default function EditarCliente() {
   const navigation = useNavigation();
   const route = useRoute();
-  const [cliente, setCliente] = useState(null);
-
-  const clientes = [
-    { id: 1, nome: 'Cliente 1', foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRke-KojYq2QQ9p9nFqtgMUoRu9Jvvccw2vsoGtE7fIzQ&s' },
-    { id: 2, nome: 'Cliente 2', foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8eCsr2-dOzB8bGFCpv_4OY5c0a-eV5adytdPcKlTLBCPd8gWTWUkIxQR5MjABUtO6daU&usqp=CAU' },
-    { id: 3, nome: 'Cliente 3', foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTh-C6XlLDyom3ZA-YU98RZsMIx50qwU8xzlmtiK261de3VveBy0QBgOsFNac3Yb69WsBU&usqp=CAU' },
-    { id: 4, nome: 'Cliente 4', foto: 'https://cdn2.iconfinder.com/data/icons/avatar-181/48/avatar_face_man_boy_girl_female_male_woman_profile_smiley_happy_people-05-512.png' },
-    { id: 5, nome: 'Cliente 5', foto: 'https://w7.pngwing.com/pngs/900/441/png-transparent-avatar-face-man-boy-male-profile-smiley-avatar-icon.png' },
-    { id: 6, nome: 'Cliente 6', foto: 'https://cdn.icon-icons.com/icons2/2859/PNG/512/avatar_face_man_boy_male_profile_smiley_happy_people_icon_181657.png' },
-    { id: 7, nome: 'Cliente 7', foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZnWCJBWFXoxMKXQ_cAWgPOq8tEtJgUsRQp3er_BZG6_bQ_65iUHVIJs6pHeEeJFu1B3Q&usqp=CAU' },
-    { id: 8, nome: 'Cliente 8', foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQG88OHoEqetgy0Th0sFXZ0lAoq_JcTSaMJnADe7PlvZg&s' },
-    { id: 9, nome: 'Cliente 9', foto: 'https://example.com/foto1.jpg' },
-  ];
+  const [usuario, setUsuario] = useState(null);
 
   const handleNextPage = (clienteId) => {
     navigation.navigate('EditarClienteEndereco', { clienteId: clienteId });
   };
 
   useEffect(() => {
-    const { clienteId } = route.params;
-    const clienteEncontrado = clientes.find(cliente => cliente.id === clienteId);
-    setCliente(clienteEncontrado);
+    const { usuarioId } = route.params;
+    const usuarioEncontrado = usuarios.find(cliente => cliente.id === clienteId);
+    setUsuario(usuarioEncontrado);
   }, [route.params]);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.firstHalf}>
         <View>
-          {cliente && (
+          {usuario && (
             <View style={styles.firstHalfContent}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackContainer}>
                 <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
-                <Text style={styles.title}>Ver/Editar {cliente.nome}</Text>
+                <Text style={styles.title}>Ver/Editar {usuario.nome}</Text>
               </TouchableOpacity>
               <Image source={{ uri: cliente.foto }} style={styles.clienteFoto} />
             </View>
@@ -59,7 +47,7 @@ export default function EditarCliente() {
           <TouchableOpacity style={styles.buttonDeletar}>
             <Text style={styles.buttonText}>Deletar cliente</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.buttonProximo} onPress={() => handleNextPage(cliente.id)}>
+          <TouchableOpacity style={styles.buttonProximo} onPress={() => handleNextPage(usuario.id)}>
             <Text style={styles.buttonText}>Próximo</Text>
           </TouchableOpacity>
         </View>

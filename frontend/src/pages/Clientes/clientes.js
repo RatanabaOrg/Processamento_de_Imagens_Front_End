@@ -1,26 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import auth from '@react-native-firebase/auth';
+import firebase from '@react-native-firebase/app';
+import axios from 'axios';
 
 export default function Clientes() {
 
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredClientes, setFilteredClientes] = useState([]);
+  const [filteredUsuarios, setFilteredUsuarios] = useState([]);
+  const [usuarios, setUsuarios] = useState([]);
 
-  const clientes = [
-    { id: 1, nome: 'Cliente 1', foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRke-KojYq2QQ9p9nFqtgMUoRu9Jvvccw2vsoGtE7fIzQ&s' },
-    { id: 2, nome: 'Cliente 2', foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8eCsr2-dOzB8bGFCpv_4OY5c0a-eV5adytdPcKlTLBCPd8gWTWUkIxQR5MjABUtO6daU&usqp=CAU' },
-    { id: 3, nome: 'Cliente 3', foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTh-C6XlLDyom3ZA-YU98RZsMIx50qwU8xzlmtiK261de3VveBy0QBgOsFNac3Yb69WsBU&usqp=CAU' },
-    { id: 4, nome: 'Cliente 4', foto: 'https://cdn2.iconfinder.com/data/icons/avatar-181/48/avatar_face_man_boy_girl_female_male_woman_profile_smiley_happy_people-05-512.png' },
-    { id: 5, nome: 'Cliente 5', foto: 'https://w7.pngwing.com/pngs/900/441/png-transparent-avatar-face-man-boy-male-profile-smiley-avatar-icon.png' },
-    { id: 6, nome: 'Cliente 6', foto: 'https://cdn.icon-icons.com/icons2/2859/PNG/512/avatar_face_man_boy_male_profile_smiley_happy_people_icon_181657.png' },
-    { id: 7, nome: 'Cliente 7', foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZnWCJBWFXoxMKXQ_cAWgPOq8tEtJgUsRQp3er_BZG6_bQ_65iUHVIJs6pHeEeJFu1B3Q&usqp=CAU' },
-    { id: 8, nome: 'Cliente 8', foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQG88OHoEqetgy0Th0sFXZ0lAoq_JcTSaMJnADe7PlvZg&s' },
-    { id: 9, nome: 'Cliente 9', foto: 'https://example.com/foto1.jpg' },
-  ];
+  useEffect(() => {
+      const fetchUsuarios = async () => {
+        const currentUser = firebase.auth().currentUser;
+        const idToken = await currentUser.getIdToken();
+          try {
+              const response = await axios.get('http://10.0.2.2:3000/usuario', {
+                headers: {
+                  'Authorization': `Bearer ${idToken}`,
+                  'Content-Type': 'application/json'
+                }
+              });
+              setUsuarios(response.data);
+              console.log(response.data)
+              setFilteredUsuarios(response.data); 
+          } catch (error) {
+              console.error('Erro ao buscar usuários:', error);
+          }
+      };
+
+      fetchUsuarios();
+  }, []);
 
   const handleClient = (clienteId) => {
     navigation.navigate('EditarCliente', { clienteId: clienteId });
@@ -30,16 +44,14 @@ export default function Clientes() {
     navigation.navigate('AprovarContas');
   };
 
-  useEffect(() => {
-    setFilteredClientes(clientes);
-  }, []);
-
   const handleSearch = () => {
     if (searchQuery.trim() === '') {
-      setFilteredClientes(clientes);
+      // Se a consulta de pesquisa estiver vazia, exibir todos os usuários
+      setFilteredUsuarios(usuarios);
     } else {
-      const filtered = clientes.filter(cliente => cliente.nome.toLowerCase().includes(searchQuery.toLowerCase()));
-      setFilteredClientes(filtered);
+      // Caso contrário, filtrar os usuários com base na consulta de pesquisa
+      const filtered = usuarios.filter(usuario => usuario.nome.toLowerCase().includes(searchQuery.toLowerCase()));
+      setFilteredUsuarios(filtered);
     }
   };
 
@@ -49,10 +61,9 @@ export default function Clientes() {
         <View style={styles.firstHalfContent}>
           <Text style={styles.title}>Últimos clientes</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
-
-            {clientes.map((cliente, index) => (
+            {usuarios.map((usuario, index) => (
               <TouchableOpacity key={index} style={styles.clienteCircle}>
-                <Image source={{ uri: cliente.foto }} style={styles.clienteFoto} />
+                <Image source={{ nome: usuario.nome }} style={styles.clienteFoto} />
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -70,22 +81,21 @@ export default function Clientes() {
             value={searchQuery}
             placeholderTextColor="#FF8C00"
           />
-        </View>
-
-        <ScrollView contentContainerStyle={styles.clienteContainer}>
-          {filteredClientes.map(cliente => (
-            <TouchableOpacity key={cliente.id} style={styles.cliente} onPress={() => handleClient(cliente.id)}>
-              <View style={styles.clienteContent}>
-                <Image source={{ uri: cliente.foto }} style={styles.cliFoto} />
-                <Text style={styles.clienteNome}>{cliente.nome}</Text>
-                <TouchableOpacity style={styles.arrowIcon} onPress={() => handleClient(cliente.id)}>
-                  <Feather name="arrow-right" size={24} color="black" style={styles.searchIcon} />
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-        <TouchableOpacity style={styles.button} onPress={() => handleApproval()}>
+      </View>
+      <ScrollView contentContainerStyle={styles.clienteContainer}>
+           {filteredUsuarios.map(usuario => (
+             <TouchableOpacity key={usuario.id} style={styles.cliente} onPress={() => handleClient(usuario.id)}>
+               <View style={styles.clienteContent}>
+                 {/* <Image source={{ uri: cliente.foto }} style={styles.cliFoto} /> */}
+                 <Text style={styles.clienteNome}>{usuario.nome}</Text>
+                 <TouchableOpacity style={styles.arrowIcon} onPress={() => handleClient(usuario.id)}>
+                   <Feather name="arrow-right" size={24} color="black" style={styles.searchIcon} />
+                 </TouchableOpacity>
+               </View>
+             </TouchableOpacity>
+           ))}
+         </ScrollView> 
+         <TouchableOpacity style={styles.button} onPress={() => handleApproval()}>
           <Text style={styles.buttonText}>Aprovar contas</Text>
         </TouchableOpacity>
       </View>

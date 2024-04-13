@@ -2,39 +2,50 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
+import firebase from '@react-native-firebase/app';
+import axios from 'axios'; // Adicionei a importação do axios
 
 export default function Clientes() {
 
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredClientes, setFilteredClientes] = useState([]);
+  const [usuario, setUsuario] = useState(null);
+  const [usuarioAtual, setUsuarioAtual] = useState(null);
 
-  const clientes = [
-    { id: 1, nome: 'Cliente 1', email: 'email@dominio.com', telefone: '(12) 99191-9191',
-    foto: 'https://w7.pngwing.com/pngs/900/441/png-transparent-avatar-face-man-boy-male-profile-smiley-avatar-icon.png' }
-  ];
-
-  const handleProfile = (clienteId) => {
-    navigation.navigate('EditarPerfil', { clienteId: clienteId });
-  };
 
   useEffect(() => {
-    setFilteredClientes(clientes);
-  }, []);
+    const fetchUsuario = async () => {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const id = await currentUser.uid;
+      setUsuarioAtual(currentUser.email)
+      console.log(idToken)
+      
+      try {
+        const response = await axios.get(`http://10.0.2.2:3000/usuario/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        setUsuario(response.data); 
+        console.log(response.data)
+      } catch (error) {
+        console.error('Erro ao buscar usuários:', error);
+      }
+    };
 
-  const handleSearch = () => {
-    const filtered = clientes.filter(cliente => cliente.nome.toLowerCase().includes(searchQuery.toLowerCase()));
-      setFilteredClientes(filtered);
-    
-  };
+    fetchUsuario();
+  }, []);
 
   const handleSignOut = () => {
     auth().signOut().then(() => {
-        navigation.navigate("Login")
-      })
-      .catch(() => {
-        console.log("Não há usuário logado")
-      })
+      navigation.navigate("Login") // Troquei useNavigation por navigation
+    })
+    .catch(() => {
+      console.log("Não há usuário logado")
+    })
   }
 
   return (
@@ -47,20 +58,20 @@ export default function Clientes() {
       </View>
 
       <TouchableOpacity style={styles.clienteCircle}>
-        <Image source={{ uri: clientes[0].foto }} style={styles.clienteFoto} />
+        <Image source={{ nome: usuario ? usuario.nome : ''}} style={styles.clienteFoto} />
       </TouchableOpacity>
 
       <View style={styles.secondHalf}>
         <View style={styles.secondHalfInputs}>
           <Text style={styles.label}>Nome completo</Text>
           <TextInput style={styles.input} 
-          placeholder="Seu nome" editable={false} value={clientes[0].nome} />
+            placeholder="Seu nome" editable={false} value={usuario ? usuario.nome : ''} />
           <Text style={styles.label}>Email</Text>
           <TextInput style={styles.input} 
-          placeholder="Seu email" editable={false} value={clientes[0].email} />
+            placeholder="Seu email" editable={false} value={usuario ?  usuarioAtual : ''} />
           <Text style={styles.label}>Telefone</Text>
           <TextInput style={styles.input} 
-          placeholder="Seu telefone" editable={false} value={clientes[0].telefone} />
+            placeholder="Seu telefone" editable={false} value={usuario ? usuario.telefone : ''} />
         </View>
 
         <TouchableOpacity style={styles.button} onPress={() => handleProfile(clientes[0].id)}>

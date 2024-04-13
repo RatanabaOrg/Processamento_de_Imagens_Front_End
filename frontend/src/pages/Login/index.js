@@ -15,28 +15,28 @@ export default function Login() {
 
     navigation.navigate('Main', { screen: 'Clientes' });
 
-    // try {
-    //   await auth().signInWithEmailAndPassword(email, password);
-    //   navigation.navigate('Main', { screen: 'Clientes' });
-    // } catch (error) {
-    //   console.error(error);
-    //   if (error.code === 'auth/invalid-login') {
-    //     setErrorMessage('Email e/ou senha incorretos!');
-    //   }
-    //   else if (error.code === 'auth/invalid-email') {
-    //     setErrorMessage('Email fora de formatação, é preciso ter @ e .');
-    //   }
-    //   else if (error.code === 'auth/network-request-failed') {
-    //     setErrorMessage('Solicitação falhou, erro de rede!')
-    //   }
-    //     else if (error.code === 'auth/invalid-credential') {
-    //       setErrorMessage('Essa conta não existe!')
-    //   } else {
-    //     setErrorMessage("")
-    //   }
+    try {
+      await auth().signInWithEmailAndPassword(email, password);
+      navigation.navigate('Main', { screen: 'Clientes' });
+    } catch (error) {
+      console.error(error);
+      if (error.code === 'auth/invalid-login') {
+        setErrorMessage('Email e/ou senha incorretos!');
+      }
+      else if (error.code === 'auth/invalid-email') {
+        setErrorMessage('Email fora de formatação, é preciso ter @ e .');
+      }
+      else if (error.code === 'auth/network-request-failed') {
+        setErrorMessage('Solicitação falhou, erro de rede!')
+      }
+        else if (error.code === 'auth/invalid-credential') {
+          setErrorMessage('Essa conta não existe!')
+      } else {
+        setErrorMessage("")
+      }
       
-    //   // Alert.alert("Erro ao entrar", "Ocorreu um erro ao tentar fazer login. Verifique suas credenciais.");
-    // }
+      // Alert.alert("Erro ao entrar", "Ocorreu um erro ao tentar fazer login. Verifique suas credenciais.");
+    }
   };
 
 
