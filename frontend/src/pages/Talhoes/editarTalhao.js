@@ -3,19 +3,13 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Aler
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
+import firebase from '@react-native-firebase/app';
+import axios from 'axios';
 
 export default function EditarTalhao() {
   const navigation = useNavigation();
   const route = useRoute();
-  const [talhao, settalhao] = useState(null);
-
-  const talhoes = [
-    { id: 1, nome: 'Laranja', tipoPlantacao: 'Laranja' },
-    { id: 2, nome: 'Limão', tipoPlantacao: 'Limão' },
-    { id: 3, nome: 'Laranja', tipoPlantacao: 'Laranja' },
-    { id: 4, nome: 'Limão', tipoPlantacao: 'Limão' },
-    { id: 5, nome: 'Laranja', tipoPlantacao: 'Laranja' },
-  ];
+  const [talhao, setTalhao] = useState(null);
 
   const handleFazenda = (talhaoId) => {
     navigation.navigate('VerFazenda', { talhaoId: talhaoId });
@@ -41,9 +35,24 @@ export default function EditarTalhao() {
   };
 
   useEffect(() => {
-    const { talhaoId } = route.params;
-    const talhaoEncontrada = talhoes.find(talhao => talhao.id === talhaoId);
-    settalhao(talhaoEncontrada);
+    const fetchTalhao = async () => {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { talhaoId } = route.params;
+      try {
+        const response = await axios.get(`http://10.0.2.2:3000/talhao/completo/${talhaoId}`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        setTalhao(response.data);
+      } catch (error) {
+        console.error('Erro ao buscar talhao:', error);
+      }
+    };
+
+    fetchFazenda();
   }, [route.params]);
 
   return (

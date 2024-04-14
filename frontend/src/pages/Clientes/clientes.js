@@ -33,7 +33,12 @@ export default function Clientes() {
       };
 
       fetchUsuarios();
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchUsuarios();
+    });
+
+    return unsubscribe;
+}, [navigation]);
 
   const handleClient = (usuarioId) => {
     navigation.navigate('EditarCliente', { usuarioId: usuarioId });

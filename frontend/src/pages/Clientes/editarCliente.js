@@ -10,8 +10,8 @@ export default function EditarCliente() {
   const navigation = useNavigation();
   const route = useRoute();
   const [usuario, setUsuario] = useState(null);
-  const [usuarioAtual, setUsuarioAtual] = useState(null);
   const [nome, setNome] = useState('');
+  const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
   const [idUser, setIdUser] = useState(null)
 
@@ -19,6 +19,7 @@ export default function EditarCliente() {
     navigation.navigate('EditarClienteEndereco', { 
       usuarioId: idUser,
       nome: nome,
+      email: email,
       telefone: telefone
     });
   };
@@ -53,7 +54,6 @@ export default function EditarCliente() {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { usuarioId } = route.params;
-      setUsuarioAtual(currentUser.email)
       setIdUser(usuarioId)
       try {
         const response = await axios.get(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
@@ -64,6 +64,7 @@ export default function EditarCliente() {
         });
         setUsuario(response.data);
         setNome(response.data.nome);
+        setEmail(response.data.email);
         setTelefone(response.data.telefone);
       } catch (error) {
         console.error('Erro ao buscar usuário:', error);
@@ -102,7 +103,7 @@ export default function EditarCliente() {
             style={styles.input}
             editable={false}
             placeholder="Seu email"
-            value={usuarioAtual ? usuarioAtual : ''}
+            value={email}
           />
           <Text style={styles.label}>Telefone</Text>
           <TextInput

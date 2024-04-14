@@ -12,6 +12,7 @@ export default function EditarClienteEndereco() {
 
   const [usuario, setUsuario] = useState(null);
   const [nome, setNome] = useState('');
+  const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
   const [cep, setCep] = useState('');
   const [logradouro, setLogradouro] = useState('');
@@ -41,6 +42,7 @@ export default function EditarClienteEndereco() {
       const { usuarioId } = route.params;
       const response = await axios.put(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
         nome: nome,
+        email: email,
         telefone: telefone,
         cep: cep,
         logradouro: logradouro,
@@ -65,8 +67,9 @@ export default function EditarClienteEndereco() {
       const fetchUsuario = async () => {
         const currentUser = firebase.auth().currentUser;
         const idToken = await currentUser.getIdToken();
-        const { usuarioId, nome, telefone } = route.params;
+        const { usuarioId, nome, email, telefone } = route.params;
         setNome(nome)
+        setEmail(email)
         setTelefone(telefone)
         
         try {

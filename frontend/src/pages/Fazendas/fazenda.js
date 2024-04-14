@@ -16,6 +16,7 @@ export default function VerFazenda() {
   const [coordenadas, setCoordenadas] = useState('');
 
   const handleSeeMore = (fazendaId) => {
+    // console.log(fazendaId)
     navigation.navigate('EditarFazenda', { fazendaId: fazendaId });
   };
 
@@ -44,6 +45,8 @@ export default function VerFazenda() {
           }
         });
         setFazenda(response.data);
+        console.log(response.data)
+        // console.log(response.data.id)
       } catch (error) {
         console.error('Erro ao buscar fazenda:', error);
       }
@@ -62,7 +65,7 @@ export default function VerFazenda() {
                 <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
                 <View>
                   <Text style={styles.title}>{fazenda.nomeFazenda}</Text>
-                  <Text style={styles.titleAgri}>Agricultor: {fazenda.agricultor}</Text>
+                  <Text style={styles.titleAgri}>Agricultor: {fazenda.nomeUsuario}</Text>
                 </View>
               </TouchableOpacity>
             </View>

@@ -41,6 +41,7 @@ export default function EditarFazenda() {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { fazendaId } = route.params;
+      console.log(fazendaId)
       const response = await axios.put(`http://10.0.2.2:3000/fazenda/${fazendaId}`, {
         nomeFazenda: nomeFazenda,
         coordenadaSede: coordenadaSede,
@@ -70,22 +71,23 @@ export default function EditarFazenda() {
       const { fazendaId } = route.params;
       console.log(fazendaId)
       try {
-        const response = await axios.get(`http://10.0.2.2:3000/fazenda/${fazendaId}`, {
+        const response = await axios.get(`http://10.0.2.2:3000/fazenda/completo/${fazendaId}`, {
           headers: {
             'Authorization': `Bearer ${idToken}`,
             'Content-Type': 'application/json'
           }
         });
         setFazenda(response.data);
-        setNomeFazenda(response.data);
-        setCoordenadaSede(response.data);
-        setCep(response.data.cep);
-        setLogradouro(response.data.logradouro);
-        setNumero(response.data.numero)
-        setBairro(response.data.bairro);
-        setCidade(response.data.cidade)
-        setUf(response.data.uf)
-        setComplemento(response.data.complemento);
+        // console.log(response.data)
+        // setNomeFazenda(response.data);
+        // setCoordenadaSede(response.data);
+        // setCep(response.data.cep);
+        // setLogradouro(response.data.logradouro);
+        // setNumero(response.data.numero)
+        // setBairro(response.data.bairro);
+        // setCidade(response.data.cidade)
+        // setUf(response.data.uf)
+        // setComplemento(response.data.complemento);
       } catch (error) {
         console.error('Erro ao buscar fazenda:', error);
       }

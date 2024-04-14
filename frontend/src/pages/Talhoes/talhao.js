@@ -37,6 +37,7 @@ export default function VerTalhao() {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { talhaoId } = route.params;
+      console.log(talhaoId)
       try {
         const response = await axios.get(`http://10.0.2.2:3000/talhao/completo/${talhaoId}`, {
           headers: {
@@ -72,11 +73,11 @@ export default function VerTalhao() {
       <View style={styles.secondHalf}>
         <View style={styles.secondHalfInputs}>
           <Text style={styles.label}>Nome</Text>
-          <TextInput style={styles.input} editable={false} placeholder={talhao.nomeTalhao}/>
+          <TextInput style={styles.input} editable={false} placeholder={talhao ? talhao.nomeTalhao : ''}/>
 
           <Text style={styles.label}>Tipo de plantação</Text>
           <TextInput style={styles.input}
-            placeholder={talhao.tipoPlantacao} editable={false}/>
+            placeholder={talhao ? talhao.tipoPlantacao: ''} editable={false}/>
 
           <View>
             <TouchableOpacity activeOpacity={0.7} onPress={() => handleSeeMore(talhao.id)}>
@@ -88,7 +89,8 @@ export default function VerTalhao() {
         <Text style={styles.armadilhas}>Armadilhas</Text>
 
         <ScrollView contentContainerStyle={styles.armadilhaContainer}>
-          {filteredArmadilhas.map(armadilhas => (
+        {talhao && talhao.armadilhas && talhao.armadilhas.length > 0 ? (
+          talhao.armadilhas.map(armadilhas => (
             <TouchableOpacity key={armadilhas.id} style={styles.armadilha} onPress={() => handleArmadilha(armadilhas.id)}>
               <View style={styles.armadilhaContent}>
                 <View style={styles.armadilhaFoto} />
@@ -102,7 +104,8 @@ export default function VerTalhao() {
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
-          ))}
+          ))): <Text> Não há armadilhas neste talhão.</Text>
+          }
         </ScrollView>
 
         <TouchableOpacity style={styles.button} onPress={() => handleCadastro()}>
@@ -151,7 +154,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   secondHalfInputs: {
-    marginTop: 50,
+    marginTop: 45,
   },
   label: {
     fontSize: 16,
@@ -161,7 +164,7 @@ const styles = StyleSheet.create({
   input: {
     height: 44,
     fontSize: 15,
-    backgroundColor: '#FFF',
+    backgroundColor: '#ddd',
     borderRadius: 12,
     marginBottom: 8,
     paddingHorizontal: 10,

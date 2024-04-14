@@ -86,7 +86,7 @@ export default function Fazendas() {
 
                 <View>
                   <Text style={styles.fazendaNome}>{fazenda.nomeFazenda}</Text>
-                  <Text style={styles.fazendaNomeAgri}>{fazenda.agricultor}</Text>
+                  <Text style={styles.fazendaNomeAgri}>{fazenda.nomeUsuario}</Text>
                 </View>
 
                 <TouchableOpacity style={styles.arrowIcon} onPress={() => handleFazenda(fazenda.id)}>
