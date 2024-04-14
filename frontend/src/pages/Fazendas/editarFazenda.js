@@ -41,7 +41,6 @@ export default function EditarFazenda() {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { fazendaId } = route.params;
-      console.log(fazendaId)
       const response = await axios.put(`http://10.0.2.2:3000/fazenda/${fazendaId}`, {
         nomeFazenda: nomeFazenda,
         coordenadaSede: coordenadaSede,
@@ -78,6 +77,7 @@ export default function EditarFazenda() {
           }
         });
         setFazenda(response.data);
+        console.log(response.data)
         // console.log(response.data)
         // setNomeFazenda(response.data);
         // setCoordenadaSede(response.data);

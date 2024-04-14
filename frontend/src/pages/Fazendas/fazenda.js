@@ -11,13 +11,12 @@ export default function VerFazenda() {
   const route = useRoute();
   const [fazenda, setFazenda] = useState(null);
   const [talhoes, setTalhoes] = useState([]);
-
+  const [idFazenda, setIdFazenda] = useState(null);
   const [nome, setNome] = useState('');
   const [coordenadas, setCoordenadas] = useState('');
 
-  const handleSeeMore = (fazendaId) => {
-    // console.log(fazendaId)
-    navigation.navigate('EditarFazenda', { fazendaId: fazendaId });
+  const handleSeeMore = () => {
+    navigation.navigate('EditarFazenda', { fazendaId: idFazenda });
   };
 
   const handleTalhao = (talhaoId) => {
@@ -37,6 +36,7 @@ export default function VerFazenda() {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { fazendaId } = route.params;
+      setIdFazenda(fazendaId)
       try {
         const response = await axios.get(`http://10.0.2.2:3000/fazenda/completo/${fazendaId}`, {
           headers: {
@@ -45,8 +45,7 @@ export default function VerFazenda() {
           }
         });
         setFazenda(response.data);
-        console.log(response.data)
-        // console.log(response.data.id)
+        
       } catch (error) {
         console.error('Erro ao buscar fazenda:', error);
       }
@@ -65,7 +64,7 @@ export default function VerFazenda() {
                 <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
                 <View>
                   <Text style={styles.title}>{fazenda.nomeFazenda}</Text>
-                  <Text style={styles.titleAgri}>Agricultor: {fazenda.nomeUsuario}</Text>
+                  <Text style={styles.titleAgri}>Agricultor: {fazenda.usuarioNome}</Text>
                 </View>
               </TouchableOpacity>
             </View>
@@ -84,7 +83,7 @@ export default function VerFazenda() {
             multiline={true} editable={false}/>
 
           <View>
-            <TouchableOpacity activeOpacity={0.7} onPress={() => handleSeeMore(fazenda.id)}>
+            <TouchableOpacity activeOpacity={0.7} onPress={() => handleSeeMore()}>
               <Text style={styles.seeMore}>Ver mais</Text>
             </TouchableOpacity>
           </View>

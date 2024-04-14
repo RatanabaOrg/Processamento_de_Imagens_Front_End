@@ -15,11 +15,6 @@ export default function VerTalhao() {
   const [nome, setNome] = useState('');
   const [tipoPlantacao, setTipoPlantacao] = useState('');
 
-  const armadilhas = [
-    { id: 1, nome: 'Armadilha 1' },
-    { id: 2, nome: 'Armadilha 2' },
-  ];
-
   const handleSeeMore = (talhaoId) => {
     navigation.navigate('EditarTalhao', { talhaoId: talhaoId });
   };
@@ -37,7 +32,6 @@ export default function VerTalhao() {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { talhaoId } = route.params;
-      console.log(talhaoId)
       try {
         const response = await axios.get(`http://10.0.2.2:3000/talhao/completo/${talhaoId}`, {
           headers: {
@@ -46,14 +40,13 @@ export default function VerTalhao() {
           }
         });
         setTalhao(response.data);
-        console.log(response.data)
       } catch (error) {
         console.error('Erro ao buscar talhao:', error);
       }
     };
 
     fetchFazenda();
-  }, [route.params]);
+}, [route.params]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -89,17 +82,17 @@ export default function VerTalhao() {
         <Text style={styles.armadilhas}>Armadilhas</Text>
 
         <ScrollView contentContainerStyle={styles.armadilhaContainer}>
-        {talhao && talhao.armadilhas && talhao.armadilhas.length > 0 ? (
-          talhao.armadilhas.map(armadilhas => (
-            <TouchableOpacity key={armadilhas.id} style={styles.armadilha} onPress={() => handleArmadilha(armadilhas.id)}>
+        {talhao && talhao.armadilha && talhao.armadilha.length > 0 ? (
+          talhao.armadilha.map(armadilha => (
+            <TouchableOpacity key={armadilha.id} style={styles.armadilha} onPress={() => handleArmadilha(armadilha.id)}>
               <View style={styles.armadilhaContent}>
                 <View style={styles.armadilhaFoto} />
 
                 <View>
-                  <Text style={styles.armadilhaNome}>{armadilhas.nome}</Text>
+                  <Text style={styles.armadilhaNome}>{armadilha.nomeArmadilha}</Text>
                 </View>
 
-                <TouchableOpacity style={styles.arrowIcon} onPress={() => handleArmadilha(armadilhas.id)}>
+                <TouchableOpacity style={styles.arrowIcon} onPress={() => handleArmadilha(armadilha.id)}>
                   <Feather name="arrow-right" size={24} color="black" />
                 </TouchableOpacity>
               </View>
