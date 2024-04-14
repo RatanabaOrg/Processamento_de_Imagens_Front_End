@@ -23,8 +23,8 @@ export default function VerFazenda() {
     navigation.navigate('VerTalhao', { talhaoId: talhaoId });
   };
 
-  const handleCadastro = () => {
-    navigation.navigate('CriarTalhao');
+  const handleCadastro = (idFazenda) => {
+    navigation.navigate('CriarTalhao', { fazendaId: idFazenda});
   };
 
   useEffect(() => {
@@ -111,7 +111,7 @@ export default function VerFazenda() {
           }
         </ScrollView>
 
-        <TouchableOpacity style={styles.button} onPress={() => handleCadastro()}>
+        <TouchableOpacity style={styles.button} onPress={() => handleCadastro(idFazenda)}>
           <Text style={styles.buttonText}>Criar talhão</Text>
         </TouchableOpacity>
       </View>

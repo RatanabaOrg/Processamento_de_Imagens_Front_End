@@ -9,6 +9,7 @@ import axios from 'axios';
 export default function VerTalhao() {
   const navigation = useNavigation();
   const route = useRoute();
+  const [idtalhao, setIdTalhao] = useState(null);
   const [talhao, setTalhao] = useState(null);
   const [filteredArmadilhas, setFilteredArmadilhas] = useState([]);
 
@@ -24,7 +25,7 @@ export default function VerTalhao() {
   };
 
   const handleCadastro = () => {
-    navigation.navigate('CriarArmadilha');
+    navigation.navigate('CriarArmadilha', { talhaoId: idtalhao});
   };
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export default function VerTalhao() {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { talhaoId } = route.params;
+      setIdTalhao(talhaoId)
       try {
         const response = await axios.get(`http://10.0.2.2:3000/talhao/completo/${talhaoId}`, {
           headers: {

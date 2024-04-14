@@ -1,18 +1,41 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
+import firebase from '@react-native-firebase/app';
+import axios from 'axios'; 
 
 export default function CriarTalhao() {
 
   const navigation = useNavigation();
+  const route = useRoute();
   const [nome, setNome] = useState('');
   const [tipoPlantacao, setTipoPlantacao] = useState('');
   const [coordenadas, setCoordenadas] = useState('');
 
-  const handleCadastrar = () => {
-    navigation.goBack();
-  };
+  const handleCadastrar = async () => {
+    try {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { fazendaId } = route.params;
+      console.log(fazendaId)
+      const response = await axios.post(`http://10.0.2.2:3000/talhao/cadastro`, {
+        nomeTalhao: nome,
+        tipoPlantacao: tipoPlantacao,
+        coordenadas: coordenadas,
+        fazendaId: fazendaId
+    }, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      navigation.goBack();
+    } catch (error) {
+      console.error('Erro ao cadastrar fazenda:', error);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>
