@@ -21,7 +21,6 @@ export default function Clientes() {
       const id = await currentUser.uid;
       setUsuarioAtual(currentUser.email)
       console.log(idToken)
-      
       try {
         const response = await axios.get(`http://10.0.2.2:3000/usuario/${id}`, {
           headers: {
@@ -30,7 +29,6 @@ export default function Clientes() {
           }
         });
         setUsuario(response.data); 
-        console.log(response.data)
       } catch (error) {
         console.error('Erro ao buscar usuários:', error);
       }

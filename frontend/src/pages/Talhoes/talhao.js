@@ -3,6 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Scro
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
+import firebase from '@react-native-firebase/app';
+import axios from 'axios';
 
 export default function VerTalhao() {
   const navigation = useNavigation();
@@ -12,14 +14,6 @@ export default function VerTalhao() {
 
   const [nome, setNome] = useState('');
   const [tipoPlantacao, setTipoPlantacao] = useState('');
-
-  const talhoes = [
-    { id: 1, nome: 'Laranja', tipoPlantacao: 'Laranja' },
-    { id: 2, nome: 'Limão', tipoPlantacao: 'Limão' },
-    { id: 3, nome: 'Laranja', tipoPlantacao: 'Laranja' },
-    { id: 4, nome: 'Limão', tipoPlantacao: 'Limão' },
-    { id: 5, nome: 'Laranja', tipoPlantacao: 'Laranja' },
-  ];
 
   const armadilhas = [
     { id: 1, nome: 'Armadilha 1' },
@@ -39,11 +33,25 @@ export default function VerTalhao() {
   };
 
   useEffect(() => {
-    const { talhaoId } = route.params;
-    const talhaoEncontrado = talhoes.find(talhao => talhao.id === talhaoId);
-    setTalhao(talhaoEncontrado);
-    
-    setFilteredArmadilhas(armadilhas);
+    const fetchFazenda = async () => {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { talhaoId } = route.params;
+      try {
+        const response = await axios.get(`http://10.0.2.2:3000/talhao/completo/${talhaoId}`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        setTalhao(response.data);
+        console.log(response.data)
+      } catch (error) {
+        console.error('Erro ao buscar talhao:', error);
+      }
+    };
+
+    fetchFazenda();
   }, [route.params]);
 
   return (
@@ -54,7 +62,7 @@ export default function VerTalhao() {
             <View style={styles.firstHalfContent}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackContainer}>
                 <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
-                <Text style={styles.title}>Ver/Editar talhão</Text>
+                <Text style={styles.title}>Ver/Editar {talhao.nomeTalhao}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -64,13 +72,11 @@ export default function VerTalhao() {
       <View style={styles.secondHalf}>
         <View style={styles.secondHalfInputs}>
           <Text style={styles.label}>Nome</Text>
-          <TextInput style={styles.input} placeholder="Nome"
-          onChangeText={(text) => setNome(text)} />
+          <TextInput style={styles.input} editable={false} placeholder={talhao.nomeTalhao}/>
 
           <Text style={styles.label}>Tipo de plantação</Text>
           <TextInput style={styles.input}
-            placeholder="Tipo de plantação"
-            onChangeText={(text) => setTipoPlantacao(text)} />
+            placeholder={talhao.tipoPlantacao} editable={false}/>
 
           <View>
             <TouchableOpacity activeOpacity={0.7} onPress={() => handleSeeMore(talhao.id)}>

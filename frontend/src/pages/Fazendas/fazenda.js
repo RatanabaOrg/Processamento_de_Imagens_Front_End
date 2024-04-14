@@ -3,28 +3,17 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Scro
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
+import firebase from '@react-native-firebase/app';
+import axios from 'axios';
 
 export default function VerFazenda() {
   const navigation = useNavigation();
   const route = useRoute();
   const [fazenda, setFazenda] = useState(null);
-  const [filteredTalhoes, setFilteredTalhoes] = useState([]);
+  const [talhoes, setTalhoes] = useState([]);
 
   const [nome, setNome] = useState('');
   const [coordenadas, setCoordenadas] = useState('');
-
-  const fazendas = [
-    { id: 1, nome: 'Fazenda Norte', agricultor: 'Luciana Silva' },
-    { id: 2, nome: 'Fazenda Sul', agricultor: 'Fabi Souza' },
-  ];
-
-  const talhoes = [
-    { id: 1, nome: 'Laranja', tipoPlantacao: 'Laranja' },
-    { id: 2, nome: 'Limão', tipoPlantacao: 'Limão' },
-    { id: 3, nome: 'Laranja', tipoPlantacao: 'Laranja' },
-    { id: 4, nome: 'Limão', tipoPlantacao: 'Limão' },
-    { id: 5, nome: 'Laranja', tipoPlantacao: 'Laranja' },
-  ];
 
   const handleSeeMore = (fazendaId) => {
     navigation.navigate('EditarFazenda', { fazendaId: fazendaId });
@@ -39,11 +28,28 @@ export default function VerFazenda() {
   };
 
   useEffect(() => {
-    const { fazendaId } = route.params;
-    const fazendaEncontrada = fazendas.find(fazenda => fazenda.id === fazendaId);
-    setFazenda(fazendaEncontrada);
     
-    setFilteredTalhoes(talhoes);
+  }, []);
+
+  useEffect(() => {
+    const fetchFazenda = async () => {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { fazendaId } = route.params;
+      try {
+        const response = await axios.get(`http://10.0.2.2:3000/fazenda/completo/${fazendaId}`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        setFazenda(response.data);
+      } catch (error) {
+        console.error('Erro ao buscar fazenda:', error);
+      }
+    };
+
+    fetchFazenda();
   }, [route.params]);
 
   return (
@@ -55,7 +61,7 @@ export default function VerFazenda() {
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackContainer}>
                 <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
                 <View>
-                  <Text style={styles.title}>{fazenda.nome}</Text>
+                  <Text style={styles.title}>{fazenda.nomeFazenda}</Text>
                   <Text style={styles.titleAgri}>Agricultor: {fazenda.agricultor}</Text>
                 </View>
               </TouchableOpacity>
@@ -67,12 +73,12 @@ export default function VerFazenda() {
       <View style={styles.secondHalf}>
         <View style={styles.secondHalfInputs}>
           <Text style={styles.label}>Nome</Text>
-          <TextInput style={styles.input} placeholder="Nome" onChangeText={(text) => setNome(text)} />
+          <TextInput style={styles.input} placeholder={fazenda ? fazenda.nomeFazenda : ''} editable={false} />
 
           <Text style={styles.label}>Coordenadas da sede</Text>
           <TextInput style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
-            placeholder="[[Latitude, Longitude],[Latitude, Longitude]]"
-            multiline={true} onChangeText={(text) => setCoordenadas(text)} />
+            placeholder={fazenda ? fazenda.coordenadaSede : ''}
+            multiline={true} editable={false}/>
 
           <View>
             <TouchableOpacity activeOpacity={0.7} onPress={() => handleSeeMore(fazenda.id)}>
@@ -84,21 +90,23 @@ export default function VerFazenda() {
         <Text style={styles.talhoes}>Talhões</Text>
 
         <ScrollView contentContainerStyle={styles.talhaoContainer}>
-          {filteredTalhoes.map(talhoes => (
-            <TouchableOpacity key={talhoes.id} style={styles.talhao} onPress={() => handleTalhao(talhoes.id)}>
+        {fazenda && fazenda.talhoes && fazenda.talhoes.length > 0 ? (
+          fazenda.talhoes.map(talhao => (
+            <TouchableOpacity key={talhao.id} style={styles.talhao} onPress={() => handleTalhao(talhao.id)}>
               <View style={styles.talhaoContent}>
                 <View style={styles.talhaoFoto} />
 
                 <View>
-                  <Text style={styles.talhaoNome}>{talhoes.nome}</Text>
+                  <Text style={styles.talhaoNome}>{talhao.nomeTalhao}</Text>
                 </View>
 
-                <TouchableOpacity style={styles.arrowIcon} onPress={() => handleTalhao(talhoes.id)}>
+                <TouchableOpacity style={styles.arrowIcon} onPress={() => handleTalhao(talhao.id)}>
                   <Feather name="arrow-right" size={24} color="black" />
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
-          ))}
+          ))): <Text>Não há talhões nesta fazenda</Text>
+          }
         </ScrollView>
 
         <TouchableOpacity style={styles.button} onPress={() => handleCadastro()}>
@@ -147,7 +155,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   secondHalfInputs: {
-    marginTop: 50,
+    marginTop: 45,
   },
   label: {
     fontSize: 16,
@@ -157,7 +165,7 @@ const styles = StyleSheet.create({
   input: {
     height: 44,
     fontSize: 15,
-    backgroundColor: '#FFF',
+    backgroundColor: '#ddd',
     borderRadius: 12,
     marginBottom: 8,
     paddingHorizontal: 10,

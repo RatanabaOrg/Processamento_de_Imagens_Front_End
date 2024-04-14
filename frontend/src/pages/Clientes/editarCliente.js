@@ -3,20 +3,74 @@ import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaVie
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
+import firebase from '@react-native-firebase/app';
+import axios from 'axios'; 
 
 export default function EditarCliente() {
   const navigation = useNavigation();
   const route = useRoute();
   const [usuario, setUsuario] = useState(null);
+  const [usuarioAtual, setUsuarioAtual] = useState(null);
+  const [nome, setNome] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [idUser, setIdUser] = useState(null)
 
-  const handleNextPage = (clienteId) => {
-    navigation.navigate('EditarClienteEndereco', { clienteId: clienteId });
+  const handleNextPage = () => {
+    navigation.navigate('EditarClienteEndereco', { 
+      usuarioId: idUser,
+      nome: nome,
+      telefone: telefone
+    });
+  };
+
+  const deleteCliente = async () => {
+    try {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { usuarioId } = route.params;
+      const response = await axios.delete(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      navigation.navigate('Main', {screen: 'Clientes'});
+    } catch (error) {
+      console.error('Erro ao deletar usuario:', error);
+    }
+  };
+  
+  const handleNomeChange = (text) => {
+    setNome(text);
+  };
+
+  const handleTelefoneChange = (text) => {
+    setTelefone(text);
   };
 
   useEffect(() => {
-    const { usuarioId } = route.params;
-    const usuarioEncontrado = usuarios.find(cliente => cliente.id === clienteId);
-    setUsuario(usuarioEncontrado);
+    const fetchUsuario = async () => {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { usuarioId } = route.params;
+      setUsuarioAtual(currentUser.email)
+      setIdUser(usuarioId)
+      try {
+        const response = await axios.get(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        setUsuario(response.data);
+        setNome(response.data.nome);
+        setTelefone(response.data.telefone);
+      } catch (error) {
+        console.error('Erro ao buscar usuário:', error);
+      }
+    };
+
+    fetchUsuario();
   }, [route.params]);
 
   return (
@@ -29,7 +83,7 @@ export default function EditarCliente() {
                 <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
                 <Text style={styles.title}>Ver/Editar {usuario.nome}</Text>
               </TouchableOpacity>
-              <Image source={{ uri: cliente.foto }} style={styles.clienteFoto} />
+              <Image source={{ uri: usuario.foto }} style={styles.clienteFoto} />
             </View>
           )}
         </View>
@@ -37,17 +91,32 @@ export default function EditarCliente() {
       <View style={styles.secondHalf}>
         <View style={styles.secondHalfInputs}>
           <Text style={styles.label}>Nome</Text>
-          <TextInput style={styles.input} placeholder="Seu nome" />
+          <TextInput
+            style={styles.input}
+            placeholder="Seu nome"
+            value={nome}
+            onChangeText={handleNomeChange}
+          />
           <Text style={styles.label}>Email</Text>
-          <TextInput style={styles.input} placeholder="Seu email" />
+          <TextInput
+            style={styles.input}
+            editable={false}
+            placeholder="Seu email"
+            value={usuarioAtual ? usuarioAtual : ''}
+          />
           <Text style={styles.label}>Telefone</Text>
-          <TextInput style={styles.input} placeholder="Seu telefone" />
+          <TextInput
+            style={styles.input}
+            placeholder="Seu telefone"
+            value={telefone}
+            onChangeText={handleTelefoneChange}
+          />
         </View>
         <View style={styles.secondHalfButtons}>
-          <TouchableOpacity style={styles.buttonDeletar}>
+          <TouchableOpacity style={styles.buttonDeletar} onPress={deleteCliente}>
             <Text style={styles.buttonText}>Deletar cliente</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.buttonProximo} onPress={() => handleNextPage(usuario.id)}>
+          <TouchableOpacity style={styles.buttonProximo} onPress={handleNextPage}>
             <Text style={styles.buttonText}>Próximo</Text>
           </TouchableOpacity>
         </View>

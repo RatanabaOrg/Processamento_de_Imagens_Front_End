@@ -26,7 +26,6 @@ export default function Clientes() {
                 }
               });
               setUsuarios(response.data);
-              console.log(response.data)
               setFilteredUsuarios(response.data); 
           } catch (error) {
               console.error('Erro ao buscar usuários:', error);
@@ -36,8 +35,8 @@ export default function Clientes() {
       fetchUsuarios();
   }, []);
 
-  const handleClient = (clienteId) => {
-    navigation.navigate('EditarCliente', { clienteId: clienteId });
+  const handleClient = (usuarioId) => {
+    navigation.navigate('EditarCliente', { usuarioId: usuarioId });
   };
 
   const handleApproval = () => {
@@ -46,10 +45,8 @@ export default function Clientes() {
 
   const handleSearch = () => {
     if (searchQuery.trim() === '') {
-      // Se a consulta de pesquisa estiver vazia, exibir todos os usuários
       setFilteredUsuarios(usuarios);
     } else {
-      // Caso contrário, filtrar os usuários com base na consulta de pesquisa
       const filtered = usuarios.filter(usuario => usuario.nome.toLowerCase().includes(searchQuery.toLowerCase()));
       setFilteredUsuarios(filtered);
     }

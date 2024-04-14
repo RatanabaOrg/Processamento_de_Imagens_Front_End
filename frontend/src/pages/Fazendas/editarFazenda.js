@@ -3,16 +3,22 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Scro
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
+import firebase from '@react-native-firebase/app';
+import axios from 'axios'; 
 
 export default function EditarFazenda() {
   const navigation = useNavigation();
   const route = useRoute();
   const [fazenda, setFazenda] = useState(null);
-
-  const fazendas = [
-    { id: 1, nome: 'Fazenda Norte', agricultor: 'Luciana Silva' },
-    { id: 2, nome: 'Fazenda Sul', agricultor: 'Fabi Souza' },
-  ];
+  const [nomeFazenda, setNomeFazenda] = useState('');
+  const [coordenadaSede, setCoordenadaSede] = useState('');
+  const [cep, setCep] = useState('');
+  const [logradouro, setLogradouro] = useState('');
+  const [numero, setNumero] = useState('');
+  const [bairro, setBairro] = useState('');
+  const [cidade, setCidade] = useState('');
+  const [uf, setUf] = useState('');
+  const [complemento, setComplemento] = useState('');
 
   const handleDeletar = () => {
     Alert.alert(
@@ -30,14 +36,62 @@ export default function EditarFazenda() {
         );
   };
 
-  const handleSalvar = () => {
-    navigation.navigate('Main', { screen: 'Fazendas' });
+  const handleSalvar = async () => {
+    try {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { fazendaId } = route.params;
+      const response = await axios.put(`http://10.0.2.2:3000/fazenda/${fazendaId}`, {
+        nomeFazenda: nomeFazenda,
+        coordenadaSede: coordenadaSede,
+        cep: cep,
+        logradouro: logradouro,
+        numero: numero,
+        cidade: cidade,
+        bairro: bairro,
+        uf: uf,
+        complemento: complemento
+      }, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      navigation.navigate('Main', {screen: 'Clientes'});
+    } catch (error) {
+      console.error('Erro ao salvar alterações:', error);
+    }
   };
 
   useEffect(() => {
-    const { fazendaId } = route.params;
-    const fazendaEncontrada = fazendas.find(fazenda => fazenda.id === fazendaId);
-    setFazenda(fazendaEncontrada);
+    const fetchFazenda = async () => {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { fazendaId } = route.params;
+      console.log(fazendaId)
+      try {
+        const response = await axios.get(`http://10.0.2.2:3000/fazenda/${fazendaId}`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        setFazenda(response.data);
+        setNomeFazenda(response.data);
+        setCoordenadaSede(response.data);
+        setCep(response.data.cep);
+        setLogradouro(response.data.logradouro);
+        setNumero(response.data.numero)
+        setBairro(response.data.bairro);
+        setCidade(response.data.cidade)
+        setUf(response.data.uf)
+        setComplemento(response.data.complemento);
+      } catch (error) {
+        console.error('Erro ao buscar fazenda:', error);
+      }
+    };
+
+    fetchFazenda();
   }, [route.params]);
 
   return (
@@ -48,7 +102,7 @@ export default function EditarFazenda() {
             <View style={styles.firstHalfContent}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackContainer}>
                 <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
-                <Text style={styles.title}>Ver/Editar {fazenda.nome}</Text>
+                <Text style={styles.title}>Ver/Editar {fazenda.nomeFazenda}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -59,41 +113,41 @@ export default function EditarFazenda() {
         <ScrollView contentContainerStyle={styles.fazendaContainer}>
         <View style={styles.secondHalfInputs}>
           <Text style={styles.label}>Nome</Text>
-          <TextInput style={styles.input} placeholder="Nome" onChangeText={(text) => setNome(text)} />
+          <TextInput style={styles.input} placeholder={fazenda ? fazenda.nomeFazenda : ''} onChangeText={(text) => setNome(text)} />
 
           <Text style={styles.label}>Coordenadas da sede</Text>
           <TextInput style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
-            placeholder="[[Latitude, Longitude],[Latitude, Longitude]]"
+            placeholder={fazenda ? fazenda.coordenadaSede : ''}
             multiline={true} onChangeText={(text) => setCoordenadas(text)} />
 
           <Text style={styles.label}>CEP</Text>
-          <TextInput style={styles.input} placeholder="CEP" />
+          <TextInput style={styles.input} placeholder={fazenda ? fazenda.cep : ''} value={cep} onChangeText={(text) => setCep(text)} onBlur={() => fetchAddressByCEP(cep)}/>
           <Text style={styles.label}>Logradouro</Text>
-          <TextInput style={styles.input} placeholder="Logradouro" />
+          <TextInput style={styles.input} placeholder={fazenda ? fazenda.logradouro: ''} value={logradouro} onChangeText={(text) => setLogradouro(text)} />
           <Text style={styles.label}>Número</Text>
-          <TextInput style={styles.input} placeholder="Número" />
+          <TextInput style={styles.input} placeholder={fazenda ? fazenda.numero : ''} value={numero} onChangeText={(text) => setNumero(text)} />
           <Text style={styles.label}>Bairro</Text>
-          <TextInput style={styles.input} placeholder="Bairro" />
+          <TextInput style={styles.input} placeholder={fazenda ? fazenda.bairro: ''} value={bairro} onChangeText={(text) => setBairro(text)} />
           <View style={styles.cidadeEUF}>
             <View>
               <Text style={styles.label}>Cidade</Text>
-              <TextInput style={styles.inputCidade} placeholder="Cidade" />
+              <TextInput style={styles.inputCidade} placeholder={fazenda ? fazenda.cidade: ''} value={cidade} onChangeText={(text) => setCidade(text)} />
             </View>
             <View>
               <Text style={styles.label}>UF</Text>
-              <TextInput style={styles.inputUF} placeholder="UF" />
+              <TextInput style={styles.inputUF} placeholder={fazenda ? fazenda.uf: ''} value={uf} onChangeText={(text) => setUf(text)} />
             </View>
           </View>
           <Text style={styles.label}>Complemento</Text>
-          <TextInput style={styles.input} placeholder="Complemento" />
+          <TextInput style={styles.input} placeholder={fazenda ? fazenda.complemento : ''} value={complemento} onChangeText={(text) => setComplemento(text)} />
         </View>
         </ScrollView>
 
         <View style={styles.secondHalfButtons}>
-          <TouchableOpacity style={styles.buttonDeletar} onPress={() => handleDeletar()}>
+          <TouchableOpacity style={styles.buttonDeletar} onPress={handleDeletar}>
             <Text style={styles.buttonText}>Deletar fazenda</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.buttonSalvar} onPress={() => handleSalvar()}>
+          <TouchableOpacity style={styles.buttonSalvar} onPress={handleSalvar}>
             <Text style={styles.buttonText}>Salvar alterações</Text>
           </TouchableOpacity>
         </View>
