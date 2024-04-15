@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, FlatList } from 'react-native';
+import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import auth from '@react-native-firebase/auth';
 import firebase from '@react-native-firebase/app';
 import axios from 'axios';
 
@@ -15,31 +14,31 @@ export default function Clientes() {
   const [usuarios, setUsuarios] = useState([]);
 
   useEffect(() => {
-      const fetchUsuarios = async () => {
-        const currentUser = firebase.auth().currentUser;
-        const idToken = await currentUser.getIdToken();
-        console.log(idToken)
-          try {
-              const response = await axios.get('http://10.0.2.2:3000/usuario', {
-                headers: {
-                  'Authorization': `Bearer ${idToken}`,
-                  'Content-Type': 'application/json'
-                }
-              });
-              setUsuarios(response.data);
-              setFilteredUsuarios(response.data); 
-          } catch (error) {
-              console.error('Erro ao buscar usuários:', error);
+    const fetchUsuarios = async () => {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      console.log(idToken)
+      try {
+        const response = await axios.get('http://10.0.2.2:3000/usuario', {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
           }
-      };
+        });
+        setUsuarios(response.data);
+        setFilteredUsuarios(response.data);
+      } catch (error) {
+        console.log('Erro ao buscar usuários:', error);
+      }
+    };
 
-      fetchUsuarios();
+    fetchUsuarios();
     const unsubscribe = navigation.addListener('focus', () => {
       fetchUsuarios();
     });
 
     return unsubscribe;
-}, [navigation]);
+  }, [navigation]);
 
   const handleClient = (usuarioId) => {
     navigation.navigate('EditarCliente', { usuarioId: usuarioId });
@@ -66,7 +65,11 @@ export default function Clientes() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
             {usuarios.map((usuario, index) => (
               <TouchableOpacity key={index} style={styles.clienteCircle}>
-                <Image source={{ nome: usuario.nome }} style={styles.clienteFoto} />
+                {usuario.foto ? (
+                  <Image source={{ uri: usuario.foto }} style={styles.clienteFoto} />
+                ) : (
+                  <Text style={styles.clienteInitials}>{getInitials(usuario.nome)}</Text>
+                )}
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -84,27 +87,50 @@ export default function Clientes() {
             value={searchQuery}
             placeholderTextColor="#FF8C00"
           />
-      </View>
-      <ScrollView contentContainerStyle={styles.clienteContainer}>
-           {filteredUsuarios.map(usuario => (
-             <TouchableOpacity key={usuario.id} style={styles.cliente} onPress={() => handleClient(usuario.id)}>
-               <View style={styles.clienteContent}>
-                 {/* <Image source={{ uri: cliente.foto }} style={styles.cliFoto} /> */}
-                 <Text style={styles.clienteNome}>{usuario.nome}</Text>
-                 <TouchableOpacity style={styles.arrowIcon} onPress={() => handleClient(usuario.id)}>
-                   <Feather name="arrow-right" size={24} color="black" style={styles.searchIcon} />
-                 </TouchableOpacity>
-               </View>
-             </TouchableOpacity>
-           ))}
-         </ScrollView> 
-         <TouchableOpacity style={styles.button} onPress={() => handleApproval()}>
+        </View>
+        <ScrollView contentContainerStyle={styles.clienteContainer}>
+          {filteredUsuarios.map(usuario => (
+            <TouchableOpacity key={usuario.id} style={styles.cliente} onPress={() => handleClient(usuario.id)}>
+              <View style={styles.clienteContent}>
+                <View style={styles.clienteCircle}>
+                  {usuario.foto ? (
+                    <Image source={{ uri: usuario.foto }} style={styles.clienteFoto} />
+                  ) : (
+                    <Feather name="user" size={24} color="white" />
+                  )}
+                </View>
+                <Text style={styles.clienteNome}>{usuario.nome}</Text>
+                <TouchableOpacity style={styles.arrowIcon} onPress={() => handleClient(usuario.id)}>
+                  <Feather name="arrow-right" size={24} color="black" style={styles.searchIcon} />
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+        <TouchableOpacity style={styles.button} onPress={() => handleApproval()}>
           <Text style={styles.buttonText}>Aprovar contas</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
+
+const getInitials = (name) => {
+  const words = name.split(' ');
+  let initials = '';
+  
+  const filteredWords = words.filter(word => !['de', 'da', 'do'].includes(word.toLowerCase()));
+
+  if (filteredWords.length > 3) {
+    initials = filteredWords.slice(0, 3).reduce((acc, word) => acc + word.charAt(0), '');
+  } else if (filteredWords.length > 1) {
+    initials = filteredWords.reduce((acc, word) => acc + word.charAt(0), '');
+  } else if (filteredWords.length === 1) {
+    initials = filteredWords[0].charAt(0);
+  }
+
+  return initials.toUpperCase();
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -141,6 +167,11 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
+  },
+  clienteInitials: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   secondHalf: {
     flex: 7.5,

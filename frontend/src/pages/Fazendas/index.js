@@ -12,6 +12,7 @@ export default function Fazendas() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredFazendas, setFilteredFazendas] = useState([]);
   const [fazendas, setFazendas] = useState([]);
+  const [cliente, setCliente] = useState(false);
 
   const handleFazenda = (fazendaId) => {
     navigation.navigate('VerFazenda', { fazendaId: fazendaId });
@@ -24,11 +25,12 @@ export default function Fazendas() {
       const usuarioId = currentUser.uid;
 
       const response = await axios.get(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
-            headers: {
-              'Authorization': `Bearer ${idToken}`,
-              'Content-Type': 'application/json'
-            }
-          });
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      setCliente(response.data.cliente);
 
       try {
         if (response.data.cliente) {
@@ -56,7 +58,12 @@ export default function Fazendas() {
     };
 
     fetchFazendas();
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchFazendas();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const handleCadastro = () => {
     navigation.navigate('CriarFazenda');
@@ -106,7 +113,9 @@ export default function Fazendas() {
 
                 <View>
                   <Text style={styles.fazendaNome}>{fazenda.nomeFazenda}</Text>
-                  <Text style={styles.fazendaNomeAgri}>{fazenda.nomeUsuario}</Text>
+                  {!cliente ?
+                    <Text style={styles.fazendaNomeAgri}>{fazenda.nomeFazenda}</Text>
+                    : null}
                 </View>
 
                 <TouchableOpacity style={styles.arrowIcon} onPress={() => handleFazenda(fazenda.id)}>
@@ -128,7 +137,7 @@ export default function Fazendas() {
 const getInitials = (name) => {
   const words = name.split(' ');
   let initials = '';
-  
+
   const filteredWords = words.filter(word => !['de', 'da', 'do'].includes(word.toLowerCase()));
 
   if (filteredWords.length > 3) {
