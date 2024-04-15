@@ -29,7 +29,7 @@ export default function VerTalhao() {
   };
 
   useEffect(() => {
-    const fetchFazenda = async () => {
+    const fetchTalhao = async () => {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { talhaoId } = route.params;
@@ -47,8 +47,14 @@ export default function VerTalhao() {
       }
     };
 
-    fetchFazenda();
-}, [route.params]);
+    fetchTalhao();
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchTalhao();
+    });
+
+    return unsubscribe;
+}, [navigation, route.params]);
+
 
   return (
     <SafeAreaView style={styles.container}>

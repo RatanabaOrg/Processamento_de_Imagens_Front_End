@@ -79,7 +79,7 @@ export default function AppRoutes() {
       <Stack.Screen name="VerFazenda" component={VerFazenda} options={{ headerShown: false }} />
       <Stack.Screen name="EditarFazenda" component={EditarFazenda} options={{ headerShown: false }} />
 
-      <Stack.Screen name="VerTalhao" component={VerTalhao} options={{ headerShown: false }} />
+      <Stack.Screen name="VerTalhao" component={VerTalhao} initialParams={{ key: Math.random().toString() }} options={{ headerShown: false }} />
       <Stack.Screen name="EditarTalhao" component={EditarTalhao} options={{ headerShown: false }} />
       <Stack.Screen name="CriarTalhao" component={CriarTalhao} options={{ headerShown: false }} />
       

@@ -18,6 +18,7 @@ export default function Clientes() {
       const fetchUsuarios = async () => {
         const currentUser = firebase.auth().currentUser;
         const idToken = await currentUser.getIdToken();
+        console.log(idToken)
           try {
               const response = await axios.get('http://10.0.2.2:3000/usuario', {
                 headers: {

@@ -48,7 +48,24 @@ export default function EditarArmadilha() {
       "Você realmente deseja deletar essa armadilha? \n \nEssa ação é irreversível e irá apagar todos os dados!",
       [{
         text: "Confirmar",
-        onPress: () => { handleTalhao(armadilha.id) }
+        onPress: () => {  const deleteArmadilha = async () => {
+          try {
+            const currentUser = firebase.auth().currentUser;
+            const idToken = await currentUser.getIdToken();
+            const { armadilhaId } = route.params;
+            const response = await axios.delete(`http://10.0.2.2:3000/armadilha/${armadilhaId}`, {
+              headers: {
+                'Authorization': `Bearer ${idToken}`,
+                'Content-Type': 'application/json'
+              }
+            });
+           
+            navigation.goBack();
+          } catch (error) {
+            console.error('Erro ao deletar usuario:', error);
+          }
+        };
+        deleteArmadilha() }
       },
       {
         text: "Cancelar",
@@ -72,7 +89,7 @@ export default function EditarArmadilha() {
             'Content-Type': 'application/json'
           }
         });
-        navigation.navigate('VerTalhao');
+        navigation.goBack();
       } catch (error) {
         console.error('Erro ao salvar alterações:', error);
       }

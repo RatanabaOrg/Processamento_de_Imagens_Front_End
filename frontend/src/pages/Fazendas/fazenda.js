@@ -64,7 +64,7 @@ export default function VerFazenda() {
                 <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
                 <View>
                   <Text style={styles.title}>{fazenda.nomeFazenda}</Text>
-                  <Text style={styles.titleAgri}>Agricultor: {fazenda.usuarioNome}</Text>
+                  <Text style={styles.titleAgri}>Agricultor: {fazenda.nomeUsuario}</Text>
                 </View>
               </TouchableOpacity>
             </View>

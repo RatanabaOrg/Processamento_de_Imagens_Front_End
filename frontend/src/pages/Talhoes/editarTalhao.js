@@ -24,7 +24,26 @@ export default function EditarTalhao() {
       "Você realmente deseja deletar esse talhão? \n \nEssa ação é irreversível e irá apagar todos os dados relacionados ao talhão!",
       [{
         text: "Confirmar",
-        onPress: () => { handleFazenda(talhao.id) }
+        onPress: () => {  
+        const deleteTalhao = async () => {
+          try {
+            const currentUser = firebase.auth().currentUser;
+            const idToken = await currentUser.getIdToken();
+            const { talhaoId } = route.params;
+            const response = await axios.delete(`http://10.0.2.2:3000/talhao/${talhaoId}`, {
+              headers: {
+                'Authorization': `Bearer ${idToken}`,
+                'Content-Type': 'application/json'
+              }
+            });
+           
+            navigation.navigate('VerFazenda');
+          } catch (error) {
+            console.error('Erro ao deletar usuario:', error);
+          }
+        };
+        deleteTalhao()
+      }
       },
       {
         text: "Cancelar",
@@ -48,7 +67,7 @@ export default function EditarTalhao() {
           'Content-Type': 'application/json'
         }
       });
-      navigation.navigate('VerTalhao');
+      navigation.goBack();
     } catch (error) {
       console.error('Erro ao salvar alterações:', error);
     }
