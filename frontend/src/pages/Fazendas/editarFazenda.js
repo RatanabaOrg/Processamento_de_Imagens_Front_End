@@ -27,7 +27,24 @@ export default function EditarFazenda() {
           [{
             text: "Confirmar",
             onPress: () => { 
-              navigation.navigate('Main', { screen: 'Fazendas' }); }
+              const deleteFazenda = async () => {
+                try {
+                  const currentUser = firebase.auth().currentUser;
+                  const idToken = await currentUser.getIdToken();
+                  const { fazendaId } = route.params;
+                  const response = await axios.delete(`http://10.0.2.2:3000/fazenda/${fazendaId}`, {
+                    headers: {
+                      'Authorization': `Bearer ${idToken}`,
+                      'Content-Type': 'application/json'
+                    }
+                  });
+                 
+                  navigation.navigate('Fazendas');
+                } catch (error) {
+                  console.error('Erro ao deletar usuario:', error);
+                }
+              };
+              deleteFazenda() }
           },
           {
             text: "Cancelar",
