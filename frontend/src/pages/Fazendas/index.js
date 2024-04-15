@@ -21,22 +21,42 @@ export default function Fazendas() {
     const fetchFazendas = async () => {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
-        try {
-            const response = await axios.get('http://10.0.2.2:3000/fazenda', {
-              headers: {
-                'Authorization': `Bearer ${idToken}`,
-                'Content-Type': 'application/json'
-              }
-            });
-            setFazendas(response.data);
-            setFilteredFazendas(response.data); 
-        } catch (error) {
-            console.error('Erro ao buscar fazendas:', error);
+      const usuarioId = currentUser.uid;
+
+      const response = await axios.get(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+      try {
+        if (response.data.cliente) {
+          const response = await axios.get(`http://10.0.2.2:3000/usuario/completo/${usuarioId}`, {
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          setFazendas(response.data.fazendas);
+          setFilteredFazendas(response.data.fazendas);
+        } else {
+          const response = await axios.get('http://10.0.2.2:3000/fazenda', {
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          setFazendas(response.data);
+          setFilteredFazendas(response.data);
         }
+      } catch (error) {
+        console.log('Erro ao buscar fazendas:', error);
+      }
     };
 
     fetchFazendas();
-}, []);
+  }, []);
 
   const handleCadastro = () => {
     navigation.navigate('CriarFazenda');
