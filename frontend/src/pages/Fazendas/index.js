@@ -29,7 +29,6 @@ export default function Fazendas() {
               }
             });
             setFazendas(response.data);
-            console.log(response.data)
             setFilteredFazendas(response.data); 
         } catch (error) {
             console.error('Erro ao buscar fazendas:', error);

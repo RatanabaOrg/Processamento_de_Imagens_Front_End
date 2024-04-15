@@ -57,7 +57,7 @@ export default function EditarFazenda() {
           'Content-Type': 'application/json'
         }
       });
-      navigation.navigate('Main', {screen: 'Clientes'});
+      navigation.navigate('Main', {screen: 'Fazendas'});
     } catch (error) {
       console.error('Erro ao salvar alterações:', error);
     }
@@ -77,17 +77,15 @@ export default function EditarFazenda() {
           }
         });
         setFazenda(response.data);
-        console.log(response.data)
-        // console.log(response.data)
-        // setNomeFazenda(response.data);
-        // setCoordenadaSede(response.data);
-        // setCep(response.data.cep);
-        // setLogradouro(response.data.logradouro);
-        // setNumero(response.data.numero)
-        // setBairro(response.data.bairro);
-        // setCidade(response.data.cidade)
-        // setUf(response.data.uf)
-        // setComplemento(response.data.complemento);
+        setNomeFazenda(response.data.nomeFazenda);
+        setCoordenadaSede(response.data.coordenadaSede);
+        setCep(response.data.endereco.cep);
+        setLogradouro(response.data.endereco.logradouro);
+        setNumero(response.data.endereco.numero)
+        setBairro(response.data.endereco.bairro);
+        setCidade(response.data.endereco.cidade)
+        setUf(response.data.endereco.uf)
+        setComplemento(response.data.endereco.complemento);
       } catch (error) {
         console.error('Erro ao buscar fazenda:', error);
       }
@@ -115,33 +113,33 @@ export default function EditarFazenda() {
         <ScrollView contentContainerStyle={styles.fazendaContainer}>
         <View style={styles.secondHalfInputs}>
           <Text style={styles.label}>Nome</Text>
-          <TextInput style={styles.input} placeholder={fazenda ? fazenda.nomeFazenda : ''} onChangeText={(text) => setNome(text)} />
+          <TextInput style={styles.input} placeholder={fazenda ? fazenda.nomeFazenda : ''} value={nomeFazenda} onChangeText={(text) => setNomeFazenda(text)} />
 
           <Text style={styles.label}>Coordenadas da sede</Text>
           <TextInput style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
             placeholder={fazenda ? fazenda.coordenadaSede : ''}
-            multiline={true} onChangeText={(text) => setCoordenadas(text)} />
+            multiline={true} value={coordenadaSede} onChangeText={(text) => setCoordenadas(text)} />
 
           <Text style={styles.label}>CEP</Text>
-          <TextInput style={styles.input} placeholder={fazenda ? fazenda.cep : ''} value={cep} onChangeText={(text) => setCep(text)} onBlur={() => fetchAddressByCEP(cep)}/>
+          <TextInput style={styles.input} placeholder={fazenda ? fazenda.endereco.cep : ''} value={cep} onChangeText={(text) => setCep(text)} onBlur={() => fetchAddressByCEP(cep)}/>
           <Text style={styles.label}>Logradouro</Text>
-          <TextInput style={styles.input} placeholder={fazenda ? fazenda.logradouro: ''} value={logradouro} onChangeText={(text) => setLogradouro(text)} />
+          <TextInput style={styles.input} placeholder={fazenda ? fazenda.endereco.logradouro: ''} value={logradouro} onChangeText={(text) => setLogradouro(text)} />
           <Text style={styles.label}>Número</Text>
-          <TextInput style={styles.input} placeholder={fazenda ? fazenda.numero : ''} value={numero} onChangeText={(text) => setNumero(text)} />
+          <TextInput style={styles.input} placeholder={fazenda ? fazenda.endereco.numero : ''} value={numero} onChangeText={(text) => setNumero(text)} />
           <Text style={styles.label}>Bairro</Text>
-          <TextInput style={styles.input} placeholder={fazenda ? fazenda.bairro: ''} value={bairro} onChangeText={(text) => setBairro(text)} />
+          <TextInput style={styles.input} placeholder={fazenda ? fazenda.endereco.bairro: ''} value={bairro} onChangeText={(text) => setBairro(text)} />
           <View style={styles.cidadeEUF}>
             <View>
               <Text style={styles.label}>Cidade</Text>
-              <TextInput style={styles.inputCidade} placeholder={fazenda ? fazenda.cidade: ''} value={cidade} onChangeText={(text) => setCidade(text)} />
+              <TextInput style={styles.inputCidade} placeholder={fazenda ? fazenda.endereco.cidade: ''} value={cidade} onChangeText={(text) => setCidade(text)} />
             </View>
             <View>
               <Text style={styles.label}>UF</Text>
-              <TextInput style={styles.inputUF} placeholder={fazenda ? fazenda.uf: ''} value={uf} onChangeText={(text) => setUf(text)} />
+              <TextInput style={styles.inputUF} placeholder={fazenda ? fazenda.endereco.uf: ''} value={uf} onChangeText={(text) => setUf(text)} />
             </View>
           </View>
           <Text style={styles.label}>Complemento</Text>
-          <TextInput style={styles.input} placeholder={fazenda ? fazenda.complemento : ''} value={complemento} onChangeText={(text) => setComplemento(text)} />
+          <TextInput style={styles.input} placeholder={fazenda ? fazenda.endereco.complemento : ''} value={complemento} onChangeText={(text) => setComplemento(text)} />
         </View>
         </ScrollView>
 
