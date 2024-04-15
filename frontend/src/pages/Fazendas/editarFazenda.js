@@ -39,9 +39,10 @@ export default function EditarFazenda() {
                     }
                   });
                  
-                  navigation.navigate('Fazendas');
+                  navigation.goBack();  
+                  navigation.goBack();
                 } catch (error) {
-                  console.error('Erro ao deletar usuario:', error);
+                  console.log('deletar fazenda');
                 }
               };
               deleteFazenda() }

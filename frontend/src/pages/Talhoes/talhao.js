@@ -43,7 +43,7 @@ export default function VerTalhao() {
         });
         setTalhao(response.data);
       } catch (error) {
-        console.error('Erro ao buscar talhao:', error);
+        console.log('buscar talhao');
       }
     };
 

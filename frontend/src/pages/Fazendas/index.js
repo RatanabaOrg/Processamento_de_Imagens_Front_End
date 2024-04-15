@@ -56,7 +56,12 @@ export default function Fazendas() {
     };
 
     fetchFazendas();
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchFazendas();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const handleCadastro = () => {
     navigation.navigate('CriarFazenda');
