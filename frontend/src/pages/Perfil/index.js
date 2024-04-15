@@ -1,80 +1,83 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import Feather from 'react-native-vector-icons/Feather';
+import firebase from '@react-native-firebase/app';
+import axios from 'axios';
 
-export default function  Clientes() {
+export default function Clientes() {
 
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredClientes, setFilteredClientes] = useState([]);
-
-  const clientes = [
-    { id: 1, nome: 'Cliente 1', foto: 'https://example.com/foto1.jpg' },
-    { id: 2, nome: 'Cliente 2', foto: 'https://example.com/foto2.jpg' },
-    { id: 3, nome: 'Cliente 3', foto: 'https://example.com/foto3.jpg' },
-    { id: 4, nome: 'Cliente 1', foto: 'https://example.com/foto1.jpg' },
-    { id: 5, nome: 'Cliente 2', foto: 'https://example.com/foto2.jpg' },
-    { id: 6, nome: 'Cliente 3', foto: 'https://example.com/foto3.jpg' },
-    { id: 7, nome: 'Cliente 1', foto: 'https://example.com/foto1.jpg' },
-    { id: 8, nome: 'Cliente 2', foto: 'https://example.com/foto2.jpg' },
-    { id: 9, nome: 'Cliente 3', foto: 'https://example.com/foto3.jpg' },
-  ];
-
-  const handleClient = (clienteId) => {
-    navigation.navigate('EditarCliente', { clienteId: clienteId });
-  };
+  const [usuario, setUsuario] = useState(null);
+  const [usuarioAtual, setUsuarioAtual] = useState(null);
 
   useEffect(() => {
-    setFilteredClientes(clientes);
+    const fetchUsuario = async () => {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const id = await currentUser.uid;
+      setUsuarioAtual(currentUser.email)
+      console.log(idToken)
+      try {
+        const response = await axios.get(`http://10.0.2.2:3000/usuario/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        setUsuario(response.data); 
+      } catch (error) {
+        console.error('Erro ao buscar usuários:', error);
+      }
+    };
+
+    fetchUsuario();
   }, []);
-  
-  const handleSearch = () => {
-    if (searchQuery.trim() === '') {
-      setFilteredClientes(clientes);
-    } else {
-      const filtered = clientes.filter(cliente => cliente.nome.toLowerCase().includes(searchQuery.toLowerCase()));
-      setFilteredClientes(filtered);
-    }
-  };
+
+  const handleSignOut = () => {
+    auth().signOut().then(() => {
+      navigation.navigate("Login")
+    })
+    .catch(() => {
+      console.log("Não há usuário logado")
+    })
+  }
+
+  const handleProfile = () => {
+    navigation.navigate("EditarPerfil")
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.firstHalf}>
-        <View style={styles.firstHalfContent}>
-          <Text style={styles.title}>Últimos clientes</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
-            
-            {clientes.map((cliente, index) => (
-              <TouchableOpacity key={index} style={styles.clienteCircle}>
-                <Image source={{ uri: cliente.foto }} style={styles.clienteFoto} />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+        <TouchableOpacity style={styles.firstHalfContent} onPress={() => handleSignOut()}>
+          <Text style={styles.title}>Sair</Text>
+          <Feather name="log-out" size={24} color="#fff" />
+        </TouchableOpacity>
       </View>
+
+      <TouchableOpacity style={styles.clienteCircle}>
+        {/* <Image source={{ nome: usuario ? usuario.nome : ''}} style={styles.clienteFoto} /> */}
+        <Feather name="user" size={44} color="black" />
+      </TouchableOpacity>
+
       <View style={styles.secondHalf}>
-        <TextInput
-          style={styles.input}
-          placeholder="Pesquisar cliente"
-          onChangeText={setSearchQuery}
-          onSubmitEditing={handleSearch}
-          value={searchQuery}
-        />
-        <ScrollView contentContainerStyle={styles.clienteContainer}>
-          {filteredClientes.map(cliente => (
-            <TouchableOpacity key={cliente.id} style={styles.cliente} onPress={() => handleClient(cliente.id)}>
-              <View style={styles.clienteContent}>
-                <Image source={{ uri: cliente.foto }} style={styles.cliFoto} />
-                <Text style={styles.clienteNome}>{cliente.nome}</Text>
-                <TouchableOpacity style={styles.arrowIcon} onPress={() => handleClientClick(cliente.id)}>
-                  {/* Implementar ícone de seta */}
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Aprovar contas</Text>
+        <View style={styles.secondHalfInputs}>
+          <Text style={styles.label}>Nome completo</Text>
+          <TextInput style={styles.input} 
+            placeholder="Seu nome" editable={false} value={usuario ? usuario.nome : ''} />
+          <Text style={styles.label}>Email</Text>
+          <TextInput style={styles.input} 
+            placeholder="Seu email" editable={false} value={usuario ?  usuarioAtual : ''} />
+          <Text style={styles.label}>Telefone</Text>
+          <TextInput style={styles.input} 
+            placeholder="Seu telefone" editable={false} value={usuario ? usuario.telefone : ''} />
+        </View>
+
+        <TouchableOpacity style={styles.button} onPress={() => handleProfile(usuario.id)}>
+          <Text style={styles.buttonText}>Editar</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -87,53 +90,64 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF8C00',
   },
   firstHalf: {
-    flex: 2.5,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
+    flex: 1.5,
+    paddingTop: 60,
   },
-  firstHalfContent:{
-    marginTop: 4,
+  firstHalfContent: {
+    alignSelf: 'flex-end',
+    flexDirection: 'row',
+    gap: 8,
+    paddingRight: 30
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 15,
-    color: "#fff"
-  },
-  carousel: {
-    alignItems: 'center',
+    color: '#fff'
   },
   clienteCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#ccc',
+    width: 154,
+    height: 154,
+    borderRadius: 75,
+    backgroundColor: '#ddd',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
+    position: 'absolute',
+    zIndex: 1,
+    top: 180,
+    alignSelf: 'center'
   },
   clienteFoto: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    zIndex: 2,
+    backgroundColor: '#E9EEEB',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
   },
   secondHalf: {
-    flex: 7.5,
+    flex: 4,
     backgroundColor: '#E9EEEB',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     paddingHorizontal: 30,
     justifyContent: 'center',
   },
+  secondHalfInputs: {
+    marginTop: 50,
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 5,
+    color: '#000'
+  },
   input: {
-    height: 40,
-    backgroundColor: '#FFF',
-    borderColor: '#FF8C00',
-    borderWidth: 2,
-    borderRadius: 10,
-    marginBottom: 25,
-    marginTop: 25,
-    paddingHorizontal: 10, 
+    height: 44,
+    fontSize: 15,
+    backgroundColor: '#ccc',
+    borderRadius: 12,
+    marginBottom: 8,
+    paddingHorizontal: 10,
+
   },
   cliente: {
     flexDirection: 'row',
@@ -165,11 +179,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 12,
     alignItems: 'center',
+    alignSelf: 'center',
     marginTop: 18,
     marginBottom: 18,
+    width: '30%',
   },
   buttonText: {
     color: 'white',
     fontSize: 16,
+    fontWeight: 'bold',
   },
 });

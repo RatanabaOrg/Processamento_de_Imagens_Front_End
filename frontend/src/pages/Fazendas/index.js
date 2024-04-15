@@ -1,59 +1,84 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import firebase from '@react-native-firebase/app';
 import axios from 'axios';
 
-export default function Clientes() {
+export default function Fazendas() {
 
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredUsuarios, setFilteredUsuarios] = useState([]);
-  const [usuarios, setUsuarios] = useState([]);
+  const [filteredFazendas, setFilteredFazendas] = useState([]);
+  const [fazendas, setFazendas] = useState([]);
+  const [cliente, setCliente] = useState(false);
+
+  const handleFazenda = (fazendaId) => {
+    navigation.navigate('VerFazenda', { fazendaId: fazendaId });
+  };
 
   useEffect(() => {
-    const fetchUsuarios = async () => {
+    const fetchFazendas = async () => {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
-      console.log(idToken)
+      const usuarioId = currentUser.uid;
+
+      const response = await axios.get(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      setCliente(response.data.cliente);
+
       try {
-        const response = await axios.get('http://10.0.2.2:3000/usuario', {
-          headers: {
-            'Authorization': `Bearer ${idToken}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        setUsuarios(response.data);
-        setFilteredUsuarios(response.data);
+        if (response.data.cliente) {
+          const response = await axios.get(`http://10.0.2.2:3000/usuario/completo/${usuarioId}`, {
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          setFazendas(response.data.fazendas);
+          setFilteredFazendas(response.data.fazendas);
+        } else {
+          const response = await axios.get('http://10.0.2.2:3000/fazenda', {
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          setFazendas(response.data);
+          setFilteredFazendas(response.data);
+        }
       } catch (error) {
-        console.log('Erro ao buscar usuários:', error);
+        console.log('Erro ao buscar fazendas:', error);
       }
     };
 
-    fetchUsuarios();
+    fetchFazendas();
     const unsubscribe = navigation.addListener('focus', () => {
-      fetchUsuarios();
+      fetchFazendas();
     });
 
     return unsubscribe;
   }, [navigation]);
 
-  const handleClient = (usuarioId) => {
-    navigation.navigate('EditarCliente', { usuarioId: usuarioId });
+  const handleCadastro = () => {
+    navigation.navigate('CriarFazenda');
   };
 
-  const handleApproval = () => {
-    navigation.navigate('AprovarContas');
-  };
+  useEffect(() => {
+    setFilteredFazendas(fazendas);
+  }, []);
 
   const handleSearch = () => {
     if (searchQuery.trim() === '') {
-      setFilteredUsuarios(usuarios);
+      setFilteredFazendas(fazendas);
     } else {
-      const filtered = usuarios.filter(usuario => usuario.nome.toLowerCase().includes(searchQuery.toLowerCase()));
-      setFilteredUsuarios(filtered);
+      const filtered = fazendas.filter(fazenda => fazenda.nomeFazenda.toLowerCase().includes(searchQuery.toLowerCase()));
+      setFilteredFazendas(filtered);
     }
   };
 
@@ -61,18 +86,7 @@ export default function Clientes() {
     <SafeAreaView style={styles.container}>
       <View style={styles.firstHalf}>
         <View style={styles.firstHalfContent}>
-          <Text style={styles.title}>Últimos clientes</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
-            {usuarios.map((usuario, index) => (
-              <TouchableOpacity key={index} style={styles.clienteCircle}>
-                {usuario.foto ? (
-                  <Image source={{ uri: usuario.foto }} style={styles.clienteFoto} />
-                ) : (
-                  <Text style={styles.clienteInitials}>{getInitials(usuario.nome)}</Text>
-                )}
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          <Text style={styles.title}>Fazendas</Text>
         </View>
       </View>
 
@@ -81,34 +95,39 @@ export default function Clientes() {
           <Ionicons name="search" size={24} color="#FF8C00" style={styles.searchIcon} />
           <TextInput
             style={styles.input}
-            placeholder="Pesquisar cliente"
+            placeholder="Pesquisar fazenda"
             onChangeText={setSearchQuery}
             onSubmitEditing={handleSearch}
             value={searchQuery}
             placeholderTextColor="#FF8C00"
           />
         </View>
-        <ScrollView contentContainerStyle={styles.clienteContainer}>
-          {filteredUsuarios.map(usuario => (
-            <TouchableOpacity key={usuario.id} style={styles.cliente} onPress={() => handleClient(usuario.id)}>
-              <View style={styles.clienteContent}>
-                <View style={styles.clienteCircle}>
-                  {usuario.foto ? (
-                    <Image source={{ uri: usuario.foto }} style={styles.clienteFoto} />
-                  ) : (
-                    <Feather name="user" size={24} color="white" />
-                  )}
+
+        <ScrollView contentContainerStyle={styles.fazendaContainer}>
+          {filteredFazendas.map(fazenda => (
+            <TouchableOpacity key={fazenda.id} style={styles.fazenda} onPress={() => handleFazenda(fazenda.id)}>
+              <View style={styles.fazendaContent}>
+                <View style={styles.fazendaFoto}>
+                  <Text style={styles.fazendaInitials}>{getInitials(fazenda.nomeFazenda)}</Text>
                 </View>
-                <Text style={styles.clienteNome}>{usuario.nome}</Text>
-                <TouchableOpacity style={styles.arrowIcon} onPress={() => handleClient(usuario.id)}>
+
+                <View>
+                  <Text style={styles.fazendaNome}>{fazenda.nomeFazenda}</Text>
+                  {/* {!cliente ?
+                    <Text style={styles.fazendaNomeAgri}>{fazenda.nomeFazenda}</Text>
+                    : null} */}
+                </View>
+
+                <TouchableOpacity style={styles.arrowIcon} onPress={() => handleFazenda(fazenda.id)}>
                   <Feather name="arrow-right" size={24} color="black" style={styles.searchIcon} />
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
           ))}
         </ScrollView>
-        <TouchableOpacity style={styles.button} onPress={() => handleApproval()}>
-          <Text style={styles.buttonText}>Aprovar contas</Text>
+
+        <TouchableOpacity style={styles.button} onPress={() => handleCadastro()}>
+          <Text style={styles.buttonText}>Cadastrar fazenda</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -118,7 +137,7 @@ export default function Clientes() {
 const getInitials = (name) => {
   const words = name.split(' ');
   let initials = '';
-  
+
   const filteredWords = words.filter(word => !['de', 'da', 'do'].includes(word.toLowerCase()));
 
   if (filteredWords.length > 3) {
@@ -138,7 +157,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF8C00',
   },
   firstHalf: {
-    flex: 2.5,
+    flex: 1.7,
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
@@ -146,35 +165,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 15,
+    fontSize: 20,
+    fontWeight: 'bold',
     color: "#fff"
   },
-  carousel: {
-    alignItems: 'center',
-  },
-  clienteCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#ccc',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  clienteFoto: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-  },
-  clienteInitials: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
   secondHalf: {
-    flex: 7.5,
+    flex: 8.3,
     backgroundColor: '#E9EEEB',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
@@ -201,7 +197,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#FF8C00',
   },
-  cliente: {
+  fazenda: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
@@ -209,19 +205,27 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 10,
   },
-  clienteContent: {
+  fazendaContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  clienteNome: {
-    marginLeft: 10,
+  fazendaNomeAgri: {
+    color: '#BAB4B4'
   },
-  cliFoto: {
+  fazendaFoto: {
     width: 48,
     height: 48,
     borderRadius: 30,
-    backgroundColor: '#ccc'
+    backgroundColor: '#60CC64',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  fazendaInitials: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   arrowIcon: {
     marginLeft: 'auto',
@@ -230,12 +234,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF8C00',
     borderRadius: 10,
     padding: 12,
-    alignItems: 'center',
     marginTop: 18,
     marginBottom: 18,
   },
   buttonText: {
     color: 'white',
     fontSize: 16,
+    textAlign: 'center',
   },
 });

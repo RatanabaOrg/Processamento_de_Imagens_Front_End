@@ -2,63 +2,131 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
+import Feather from 'react-native-vector-icons/Feather';
+import firebase from '@react-native-firebase/app';
+import axios from 'axios';
 
 export default function EditarCliente() {
   const navigation = useNavigation();
   const route = useRoute();
-  const [cliente, setCliente] = useState(null);
+  const [usuario, setUsuario] = useState(null);
+  const [nome, setNome] = useState('');
+  const [email, setEmail] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [idUser, setIdUser] = useState(null)
 
-  const clientes = [
-    { id: 1, nome: 'Cliente 1', foto: 'https://example.com/foto1.jpg' },
-    { id: 2, nome: 'Cliente 2', foto: 'https://example.com/foto2.jpg' },
-    { id: 3, nome: 'Cliente 3', foto: 'https://example.com/foto3.jpg' },
-    { id: 4, nome: 'Cliente 1', foto: 'https://example.com/foto1.jpg' },
-    { id: 5, nome: 'Cliente 2', foto: 'https://example.com/foto2.jpg' },
-    { id: 6, nome: 'Cliente 3', foto: 'https://example.com/foto3.jpg' },
-    { id: 7, nome: 'Cliente 1', foto: 'https://example.com/foto1.jpg' },
-    { id: 8, nome: 'Cliente 2', foto: 'https://example.com/foto2.jpg' },
-    { id: 9, nome: 'Cliente 3', foto: 'https://example.com/foto3.jpg' },
-  ];
+  const handleNextPage = () => {
+    navigation.navigate('EditarClienteEndereco', {
+      usuarioId: idUser,
+      nome: nome,
+      email: email,
+      telefone: telefone
+    });
+  };
 
-  const handleNextPage = (clienteId) => {
-    navigation.navigate('EditarClienteEndereco', { clienteId: clienteId });
+  const deleteCliente = async () => {
+    try {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { usuarioId } = route.params;
+      const response = await axios.delete(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      navigation.navigate('Main', { screen: 'Clientes' });
+    } catch (error) {
+      console.error('Erro ao deletar usuario:', error);
+    }
+  };
+
+  const handleNomeChange = (text) => {
+    setNome(text);
+  };
+
+  const handleTelefoneChange = (text) => {
+    setTelefone(text);
   };
 
   useEffect(() => {
-    const { clienteId } = route.params;
-    const clienteEncontrado = clientes.find(cliente => cliente.id === clienteId);
-    setCliente(clienteEncontrado);
+    const fetchUsuario = async () => {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { usuarioId } = route.params;
+      setIdUser(usuarioId)
+      try {
+        const response = await axios.get(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        setUsuario(response.data);
+        setNome(response.data.nome);
+        setEmail(response.data.email);
+        setTelefone(response.data.telefone);
+      } catch (error) {
+        console.error('Erro ao buscar usuário:', error);
+      }
+    };
+
+    fetchUsuario();
   }, [route.params]);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.firstHalf}>
         <View>
-          {cliente && (
+          {usuario && (
             <View style={styles.firstHalfContent}>
-              <Text style={styles.title}>Ver/Editar {cliente.nome}</Text>
-              <Image source={{ uri: cliente.foto }} style={styles.clienteFoto} />
+              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackContainer}>
+                <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
+                <Text style={styles.title}>Ver/Editar {usuario.nome}</Text>
+              </TouchableOpacity>
+              <View style={styles.clienteCircle}>
+              {usuario.foto ? (
+                <Image source={{ uri: usuario.foto }} style={styles.clienteFoto} />
+              ) : (
+                <Feather name="user" size={24} color="white" />
+              )}
+              </View>
             </View>
           )}
         </View>
       </View>
       <View style={styles.secondHalf}>
-      <View style={styles.secondHalfInputs}>
-        <Text style={styles.label}>Nome</Text>
-        <TextInput style={styles.input} placeholder="Seu nome"/>
-        <Text style={styles.label}>Email</Text>
-        <TextInput style={styles.input} placeholder="Seu email"/>
-        <Text style={styles.label}>Nome</Text>
-        <TextInput style={styles.input} placeholder="Seu telefone"/>
-      </View>
-      <View style={styles.secondHalfButtons}>
-        <TouchableOpacity style={styles.buttonDeletar}>
-          <Text style={styles.buttonText}>Deletar Cliente</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.buttonProximo} onPress={() => handleNextPage(cliente.id)}>
-          <Text style={styles.buttonText}>Próximo</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.secondHalfInputs}>
+          <Text style={styles.label}>Nome</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Seu nome"
+            value={nome}
+            onChangeText={handleNomeChange}
+          />
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={styles.input}
+            editable={false}
+            placeholder="Seu email"
+            value={email}
+          />
+          <Text style={styles.label}>Telefone</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Seu telefone"
+            value={telefone}
+            onChangeText={handleTelefoneChange}
+          />
+        </View>
+        <View style={styles.secondHalfButtons}>
+          <TouchableOpacity style={styles.buttonDeletar} onPress={deleteCliente}>
+            <Text style={styles.buttonText}>Deletar cliente</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.buttonProximo} onPress={handleNextPage}>
+            <Text style={styles.buttonText}>Próximo</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -74,10 +142,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
-  firstHalfContent:{
+  firstHalfContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  goBackContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   title: {
     fontSize: 20,
@@ -107,16 +179,18 @@ const styles = StyleSheet.create({
     color: '#000'
   },
   input: {
-    height: 40,
+    height: 44,
+    fontSize: 15,
     backgroundColor: '#FFF',
-    borderRadius: 10,
+    borderRadius: 12,
     marginBottom: 8,
-    paddingHorizontal: 10, 
+    paddingHorizontal: 10,
   },
   secondHalfButtons: {
     flexDirection: 'row',
     marginTop: 18,
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    height: 44,
   },
   buttonDeletar: {
     backgroundColor: '#DE1B00',
