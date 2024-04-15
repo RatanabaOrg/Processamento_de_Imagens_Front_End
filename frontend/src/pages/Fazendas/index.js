@@ -113,9 +113,9 @@ export default function Fazendas() {
 
                 <View>
                   <Text style={styles.fazendaNome}>{fazenda.nomeFazenda}</Text>
-                  {!cliente ?
+                  {/* {!cliente ?
                     <Text style={styles.fazendaNomeAgri}>{fazenda.nomeFazenda}</Text>
-                    : null}
+                    : null} */}
                 </View>
 
                 <TouchableOpacity style={styles.arrowIcon} onPress={() => handleFazenda(fazenda.id)}>

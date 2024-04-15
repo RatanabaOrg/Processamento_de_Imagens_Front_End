@@ -3,7 +3,7 @@ import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaVie
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import firebase from '@react-native-firebase/app';
-import axios from 'axios'; // Adicionei a importação do axios
+import axios from 'axios';
 
 export default function Clientes() {
 
@@ -12,7 +12,6 @@ export default function Clientes() {
   const [filteredClientes, setFilteredClientes] = useState([]);
   const [usuario, setUsuario] = useState(null);
   const [usuarioAtual, setUsuarioAtual] = useState(null);
-
 
   useEffect(() => {
     const fetchUsuario = async () => {
@@ -39,11 +38,15 @@ export default function Clientes() {
 
   const handleSignOut = () => {
     auth().signOut().then(() => {
-      navigation.navigate("Login") // Troquei useNavigation por navigation
+      navigation.navigate("Login")
     })
     .catch(() => {
       console.log("Não há usuário logado")
     })
+  }
+
+  const handleProfile = () => {
+    navigation.navigate("EditarPerfil")
   }
 
   return (
@@ -56,7 +59,8 @@ export default function Clientes() {
       </View>
 
       <TouchableOpacity style={styles.clienteCircle}>
-        <Image source={{ nome: usuario ? usuario.nome : ''}} style={styles.clienteFoto} />
+        {/* <Image source={{ nome: usuario ? usuario.nome : ''}} style={styles.clienteFoto} /> */}
+        <Feather name="user" size={44} color="black" />
       </TouchableOpacity>
 
       <View style={styles.secondHalf}>
@@ -72,7 +76,7 @@ export default function Clientes() {
             placeholder="Seu telefone" editable={false} value={usuario ? usuario.telefone : ''} />
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={() => handleProfile(clientes[0].id)}>
+        <TouchableOpacity style={styles.button} onPress={() => handleProfile(usuario.id)}>
           <Text style={styles.buttonText}>Editar</Text>
         </TouchableOpacity>
       </View>
@@ -104,7 +108,7 @@ const styles = StyleSheet.create({
     width: 154,
     height: 154,
     borderRadius: 75,
-    backgroundColor: '#fff',
+    backgroundColor: '#ddd',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
@@ -114,6 +118,8 @@ const styles = StyleSheet.create({
     alignSelf: 'center'
   },
   clienteFoto: {
+    zIndex: 2,
+    backgroundColor: '#E9EEEB',
     width: 150,
     height: 150,
     borderRadius: 75,

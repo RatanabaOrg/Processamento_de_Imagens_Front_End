@@ -81,6 +81,7 @@ export default function EditarClienteEndereco() {
           });
           setUsuario(response.data);
           setCep(response.data.cep);
+          console.log(response.data);
           setLogradouro(response.data.logradouro);
           setNumero(response.data.numero)
           setBairro(response.data.bairro);
@@ -106,7 +107,13 @@ export default function EditarClienteEndereco() {
               <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
               <Text style={styles.title}>Ver/Editar {usuario.nome}</Text>
             </TouchableOpacity>
-            <Image source={{ nome: usuario.foto }} style={styles.clienteFoto} />
+            <View style={styles.clienteCircle}>
+              {usuario.foto ? (
+                <Image source={{ uri: usuario.foto }} style={styles.clienteFoto} />
+              ) : (
+                <Feather name="user" size={24} color="white" />
+              )}
+              </View>
           </View>
           )}
         </View>

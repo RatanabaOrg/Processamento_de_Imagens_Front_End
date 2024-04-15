@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import firebase from '@react-native-firebase/app';
-import axios from 'axios'; 
+import axios from 'axios';
 
 export default function EditarCliente() {
   const navigation = useNavigation();
@@ -16,7 +16,7 @@ export default function EditarCliente() {
   const [idUser, setIdUser] = useState(null)
 
   const handleNextPage = () => {
-    navigation.navigate('EditarClienteEndereco', { 
+    navigation.navigate('EditarClienteEndereco', {
       usuarioId: idUser,
       nome: nome,
       email: email,
@@ -35,12 +35,12 @@ export default function EditarCliente() {
           'Content-Type': 'application/json'
         }
       });
-      navigation.navigate('Main', {screen: 'Clientes'});
+      navigation.navigate('Main', { screen: 'Clientes' });
     } catch (error) {
       console.error('Erro ao deletar usuario:', error);
     }
   };
-  
+
   const handleNomeChange = (text) => {
     setNome(text);
   };
@@ -84,7 +84,13 @@ export default function EditarCliente() {
                 <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
                 <Text style={styles.title}>Ver/Editar {usuario.nome}</Text>
               </TouchableOpacity>
-              <Image source={{ uri: usuario.foto }} style={styles.clienteFoto} />
+              <View style={styles.clienteCircle}>
+              {usuario.foto ? (
+                <Image source={{ uri: usuario.foto }} style={styles.clienteFoto} />
+              ) : (
+                <Feather name="user" size={24} color="white" />
+              )}
+              </View>
             </View>
           )}
         </View>
