@@ -3,6 +3,8 @@ import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaVie
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import { Picker } from '@react-native-picker/picker';
+import firebase from '@react-native-firebase/app';
+import axios from 'axios'; 
 
 export default function CriarFazenda() {
 
@@ -20,9 +22,33 @@ export default function CriarFazenda() {
   ];
 
   const handleNextPage = () => {
-    navigation.navigate('CriarFazendaCep');
+    navigation.navigate('CriarFazendaCep', { 
+      nome: nome,
+      agricultor: agricultor,
+      cordenadasSede: coordenadas,
+    });
   };
 
+  const handleSubmit = async () => {
+    try {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const response = await axios.post(`http://10.0.2.2:3000/fazenda/cadastro`, {
+        nomeFazenda: nome,
+        agricultor: agricultor,
+        coordenadaSede: coordenadas
+    }, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      navigation.navigate('Main', {screen: 'Clientes'});
+    } catch (error) {
+      console.error('Erro ao cadastrar fazenda:', error);
+    }
+  }
+  
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.firstHalf}>
@@ -78,7 +104,7 @@ export default function CriarFazenda() {
               <Text style={styles.buttonText}>Próximo</Text>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity style={styles.button}>
+            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
               <Text style={styles.buttonText}>Salvar alterações</Text>
             </TouchableOpacity>
           )}

@@ -3,19 +3,16 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Aler
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
+import firebase from '@react-native-firebase/app';
+import axios from 'axios';
 
 export default function EditarTalhao() {
   const navigation = useNavigation();
   const route = useRoute();
-  const [talhao, settalhao] = useState(null);
-
-  const talhoes = [
-    { id: 1, nome: 'Laranja', tipoPlantacao: 'Laranja' },
-    { id: 2, nome: 'Limão', tipoPlantacao: 'Limão' },
-    { id: 3, nome: 'Laranja', tipoPlantacao: 'Laranja' },
-    { id: 4, nome: 'Limão', tipoPlantacao: 'Limão' },
-    { id: 5, nome: 'Laranja', tipoPlantacao: 'Laranja' },
-  ];
+  const [talhao, setTalhao] = useState(null);
+  const [nome, setNome] = useState(null);
+  const [tipoPlantacao, setTipoPlantacao] = useState(null);
+  const [coordenadas, setCoordenadas] = useState(null); // Corrigido o nome da variável
 
   const handleFazenda = (talhaoId) => {
     navigation.navigate('VerFazenda', { talhaoId: talhaoId });
@@ -27,7 +24,26 @@ export default function EditarTalhao() {
       "Você realmente deseja deletar esse talhão? \n \nEssa ação é irreversível e irá apagar todos os dados relacionados ao talhão!",
       [{
         text: "Confirmar",
-        onPress: () => { handleFazenda(talhao.id) }
+        onPress: () => {  
+        const deleteTalhao = async () => {
+          try {
+            const currentUser = firebase.auth().currentUser;
+            const idToken = await currentUser.getIdToken();
+            const { talhaoId } = route.params;
+            const response = await axios.delete(`http://10.0.2.2:3000/talhao/${talhaoId}`, {
+              headers: {
+                'Authorization': `Bearer ${idToken}`,
+                'Content-Type': 'application/json'
+              }
+            });
+             navigation.goBack();  
+             navigation.goBack();
+          } catch (error) {
+            console.log("excluir talhao")
+          }
+        };
+        deleteTalhao()
+      }
       },
       {
         text: "Cancelar",
@@ -36,14 +52,51 @@ export default function EditarTalhao() {
     );
   };
 
-  const handleSalvar = () => {
-    navigation.goBack();
+  const handleSalvar = async () => {
+    try {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { talhaoId } = route.params;
+      const response = await axios.put(`http://10.0.2.2:3000/talhao/${talhaoId}`, {
+        nomeTalhao: nome,
+        tipoPlantacao: tipoPlantacao, 
+        coordenadas: coordenadas 
+      }, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      navigation.goBack();
+    } catch (error) {
+      console.error('Erro ao salvar alterações:', error);
+    }
   };
 
   useEffect(() => {
-    const { talhaoId } = route.params;
-    const talhaoEncontrada = talhoes.find(talhao => talhao.id === talhaoId);
-    settalhao(talhaoEncontrada);
+    console.log('oi')
+    const fetchTalhao = async () => {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { talhaoId } = route.params;
+      try {
+        const response = await axios.get(`http://10.0.2.2:3000/talhao/completo/${talhaoId}`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        console.log(response.data)
+        setTalhao(response.data);
+        setNome(response.data.nomeTalhao);
+        setTipoPlantacao(response.data.tipoPlantacao);
+        setCoordenadas(response.data.coordenadas);
+      } catch (error) {
+        console.error('Erro ao buscar talhao:', error);
+      }
+    };
+
+    fetchTalhao();
   }, [route.params]);
 
   return (
@@ -54,7 +107,7 @@ export default function EditarTalhao() {
             <View style={styles.firstHalfContent}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackContainer}>
                 <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
-                <Text style={styles.title}>Ver/Editar talhão</Text>
+                <Text style={styles.title}>Ver/Editar {talhao.nomeTalhao}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -64,16 +117,18 @@ export default function EditarTalhao() {
       <View style={styles.secondHalf}>
         <View style={styles.secondHalfInputs}>
           <Text style={styles.label}>Nome</Text>
-          <TextInput style={styles.input} placeholder="Nome" onChangeText={(text) => setNome(text)} />
+          <TextInput style={styles.input} placeholder={talhao ? talhao.nomeTalhao : ''} value={nome} onChangeText={(text) => setNome(text)} />
 
           <Text style={styles.label}>Tipo de plantação</Text>
           <TextInput style={styles.input}
-            placeholder="Tipo de plantação"
+            placeholder={talhao ? talhao.tipoPlantacao : ''}
+            value={tipoPlantacao}
             onChangeText={(text) => setTipoPlantacao(text)} />
 
           <Text style={styles.label}>Coordenadas</Text>
           <TextInput style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
-            placeholder="[[Latitude, Longitude],[Latitude, Longitude]]"
+            placeholder={talhao ? talhao.coordenadas : ''}
+            value={coordenadas}
             multiline={true} onChangeText={(text) => setCoordenadas(text)} />
         </View>
 
@@ -89,7 +144,6 @@ export default function EditarTalhao() {
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

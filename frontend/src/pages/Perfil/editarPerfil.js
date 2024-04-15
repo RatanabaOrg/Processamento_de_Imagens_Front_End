@@ -7,29 +7,47 @@ import Feather from 'react-native-vector-icons/Feather';
 export default function EditarPerfil() {
   const navigation = useNavigation();
   const route = useRoute();
-  const [cliente, setCliente] = useState(null);
+  const [usuario, setUsuario] = useState(null);
+  const [usuarioAtual, setUsuarioAtual] = useState(null);
 
   const clientes = [
     { id: 1, nome: 'Cliente 1', foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRke-KojYq2QQ9p9nFqtgMUoRu9Jvvccw2vsoGtE7fIzQ&s' },
   ];
 
   useEffect(() => {
-    const { clienteId } = route.params;
-    const clienteEncontrado = clientes.find(cliente => cliente.id === clienteId);
-    setCliente(clienteEncontrado);
-  }, [route.params]);
+    const fetchUsuario = async () => {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const id = await currentUser.uid;
+      setUsuarioAtual(currentUser.email)
+      console.log(idToken)
+      try {
+        const response = await axios.get(`http://10.0.2.2:3000/usuario/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        setUsuario(response.data); 
+      } catch (error) {
+        console.error('Erro ao buscar usuários:', error);
+      }
+    };
+
+    fetchUsuario();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.firstHalf}>
         <View>
-          {cliente && (
+          {usuario && (
             <View style={styles.firstHalfContent}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackContainer}>
                 <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
                 <Text style={styles.title}>Perfil</Text>
               </TouchableOpacity>
-              <Image source={{ uri: cliente.foto }} style={styles.clienteFoto} />
+              {/* <Image source={{ uri: cliente.foto }} style={styles.clienteFoto} /> */}
             </View>
           )}
         </View>

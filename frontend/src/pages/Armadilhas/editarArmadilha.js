@@ -3,16 +3,40 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Aler
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
+import firebase from '@react-native-firebase/app';
+import axios from 'axios';
 
 export default function EditarArmadilha() {
   const navigation = useNavigation();
   const route = useRoute();
   const [armadilha, setArmadilha] = useState(null);
+  const [nome, setNome] = useState(null);
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
 
-  const armadilhas = [
-    { id: 1, nome: 'Armadilha 1' },
-    { id: 2, nome: 'Armadilha 2' },
-  ];
+  useEffect(() => {
+    const fetchArmadilha = async () => {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { armadilhaId } = route.params;
+      try {
+        const response = await axios.get(`http://10.0.2.2:3000/armadilha/${armadilhaId}`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        setArmadilha(response.data);
+        setNome(response.data.nomeArmadilha);
+        setLatitude(response.data.latitude);
+        setLongitude(response.data.longitude);
+      } catch (error) {
+        console.error('Erro ao buscar usuário:', error);
+      }
+    };
+
+    fetchArmadilha();
+  }, [route.params]);
 
   const handleTalhao = (armadilhaId) => {
     navigation.navigate('VerTalhao', { armadilhaId: armadilhaId });
@@ -24,7 +48,24 @@ export default function EditarArmadilha() {
       "Você realmente deseja deletar essa armadilha? \n \nEssa ação é irreversível e irá apagar todos os dados!",
       [{
         text: "Confirmar",
-        onPress: () => { handleTalhao(armadilha.id) }
+        onPress: () => {  const deleteArmadilha = async () => {
+          try {
+            const currentUser = firebase.auth().currentUser;
+            const idToken = await currentUser.getIdToken();
+            const { armadilhaId } = route.params;
+            const response = await axios.delete(`http://10.0.2.2:3000/armadilha/${armadilhaId}`, {
+              headers: {
+                'Authorization': `Bearer ${idToken}`,
+                'Content-Type': 'application/json'
+              }
+            });
+           
+            navigation.goBack();
+          } catch (error) {
+            console.error('Erro ao deletar usuario:', error);
+          }
+        };
+        deleteArmadilha() }
       },
       {
         text: "Cancelar",
@@ -33,15 +74,26 @@ export default function EditarArmadilha() {
     );
   };
 
-  const handleSalvar = () => {
-    navigation.goBack();
-  };
-
-  useEffect(() => {
-    const { armadilhaId } = route.params;
-    const armadilhaEncontrada = armadilhas.find(armadilha => armadilha.id === armadilhaId);
-    setArmadilha(armadilhaEncontrada);
-  }, [route.params]);
+  const handleSalvar = async () => {
+      try {
+        const currentUser = firebase.auth().currentUser;
+        const idToken = await currentUser.getIdToken();
+        const { armadilhaId } = route.params;
+        const response = await axios.put(`http://10.0.2.2:3000/armadilha/${armadilhaId}`, {
+          nomeArmadilha: nome,
+          latitude: latitude, 
+          longitude: longitude, 
+        }, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        navigation.goBack();
+      } catch (error) {
+        console.error('Erro ao salvar alterações:', error);
+      }
+    };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -51,7 +103,7 @@ export default function EditarArmadilha() {
             <View style={styles.firstHalfContent}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackContainer}>
                 <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
-                <Text style={styles.title}>Ver/Editar armadilha</Text>
+                <Text style={styles.title}>Ver/Editar {armadilha.nomeArmadilha}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -61,15 +113,15 @@ export default function EditarArmadilha() {
       <View style={styles.secondHalf}>
         <View style={styles.secondHalfInputs}>
           <Text style={styles.label}>Nome</Text>
-          <TextInput style={styles.input} placeholder="Nome" onChangeText={(text) => setNome(text)} />
+          <TextInput style={styles.input} placeholder={armadilha ? armadilha.nomeArmadilha : ''} value={nome} onChangeText={(text) => setNome(text)} />
 
           <Text style={styles.label}>Latitude</Text>
           <TextInput style={styles.input}
-            placeholder="Latitude" onChangeText={(text) => setLatitude(text)} />
+            placeholder={armadilha ? armadilha.latitude : ''} value={latitude} onChangeText={(text) => setLatitude(text)} />
 
           <Text style={styles.label}>Longitude</Text>
           <TextInput style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
-            placeholder="Longitude"
+            placeholder={armadilha ? armadilha.longitude : ''} value={longitude}
             multiline={true} onChangeText={(text) => setLongitude(text)} />
         </View>
 

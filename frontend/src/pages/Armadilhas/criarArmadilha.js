@@ -1,19 +1,40 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
+import firebase from '@react-native-firebase/app';
+import axios from 'axios';
 
 export default function CriarArmadilha() {
 
   const navigation = useNavigation();
+  const route = useRoute();
   const [nome, setNome] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
 
-  const handleCadastrar = () => {
-    navigation.goBack();
+  const handleCadastrar = async () => {
+    try {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { talhaoId } = route.params;
+      const response = await axios.post(`http://10.0.2.2:3000/armadilha/cadastro`, {
+        nomeArmadilha: nome,
+        latitude: latitude, 
+        longitude: longitude, 
+        talhaoId: talhaoId
+      }, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      navigation.goBack();
+    } catch (error) {
+      console.error('Erro ao salvar alterações:', error);
+    }
   };
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.firstHalf}>
@@ -38,9 +59,9 @@ export default function CriarArmadilha() {
             placeholder="Latitude" onChangeText={(text) => setLatitude(text)} />
 
           <Text style={styles.label}>Longitude</Text>
-          <TextInput style={[styles.input, { height: 100, paddingLeft: 16, textAlignVertical: 'top' }]}
+          <TextInput style={[styles.input, { height: 44, paddingLeft: 16, textAlignVertical: 'top' }]}
             placeholder="Longitude"
-            multiline={true} onChangeText={(text) => setLongitude(text)} />
+           onChangeText={(text) => setLongitude(text)} />
         </View>
 
         <View style={styles.secondHalfButton}>

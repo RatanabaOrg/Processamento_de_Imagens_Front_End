@@ -3,21 +3,67 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Scro
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import firebase from '@react-native-firebase/app';
+import axios from 'axios';
 
 export default function Fazendas() {
 
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredFazendas, setFilteredFazendas] = useState([]);
-
-  const fazendas = [
-    { id: 1, nome: 'Fazenda Norte', agricultor: 'Luciana Silva' },
-    { id: 2, nome: 'Fazenda Sul', agricultor: 'Fabi Souza' },
-  ];
+  const [fazendas, setFazendas] = useState([]);
+  const [cliente, setCliente] = useState(false);
 
   const handleFazenda = (fazendaId) => {
     navigation.navigate('VerFazenda', { fazendaId: fazendaId });
   };
+
+  useEffect(() => {
+    const fetchFazendas = async () => {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const usuarioId = currentUser.uid;
+
+      const response = await axios.get(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      setCliente(response.data.cliente);
+
+      try {
+        if (response.data.cliente) {
+          const response = await axios.get(`http://10.0.2.2:3000/usuario/completo/${usuarioId}`, {
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          setFazendas(response.data.fazendas);
+          setFilteredFazendas(response.data.fazendas);
+        } else {
+          const response = await axios.get('http://10.0.2.2:3000/fazenda', {
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          setFazendas(response.data);
+          setFilteredFazendas(response.data);
+        }
+      } catch (error) {
+        console.log('Erro ao buscar fazendas:', error);
+      }
+    };
+
+    fetchFazendas();
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchFazendas();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const handleCadastro = () => {
     navigation.navigate('CriarFazenda');
@@ -31,7 +77,7 @@ export default function Fazendas() {
     if (searchQuery.trim() === '') {
       setFilteredFazendas(fazendas);
     } else {
-      const filtered = fazendas.filter(fazenda => fazenda.nome.toLowerCase().includes(searchQuery.toLowerCase()));
+      const filtered = fazendas.filter(fazenda => fazenda.nomeFazenda.toLowerCase().includes(searchQuery.toLowerCase()));
       setFilteredFazendas(filtered);
     }
   };
@@ -62,12 +108,14 @@ export default function Fazendas() {
             <TouchableOpacity key={fazenda.id} style={styles.fazenda} onPress={() => handleFazenda(fazenda.id)}>
               <View style={styles.fazendaContent}>
                 <View style={styles.fazendaFoto}>
-                  <Text style={styles.fazendaInitials}>{getInitials(fazenda.nome)}</Text>
+                  <Text style={styles.fazendaInitials}>{getInitials(fazenda.nomeFazenda)}</Text>
                 </View>
 
                 <View>
-                  <Text style={styles.fazendaNome}>{fazenda.nome}</Text>
-                  <Text style={styles.fazendaNomeAgri}>{fazenda.agricultor}</Text>
+                  <Text style={styles.fazendaNome}>{fazenda.nomeFazenda}</Text>
+                  {/* {!cliente ?
+                    <Text style={styles.fazendaNomeAgri}>{fazenda.nomeFazenda}</Text>
+                    : null} */}
                 </View>
 
                 <TouchableOpacity style={styles.arrowIcon} onPress={() => handleFazenda(fazenda.id)}>
@@ -89,7 +137,7 @@ export default function Fazendas() {
 const getInitials = (name) => {
   const words = name.split(' ');
   let initials = '';
-  
+
   const filteredWords = words.filter(word => !['de', 'da', 'do'].includes(word.toLowerCase()));
 
   if (filteredWords.length > 3) {
