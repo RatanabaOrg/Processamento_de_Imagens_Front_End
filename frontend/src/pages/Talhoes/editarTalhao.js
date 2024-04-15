@@ -36,10 +36,10 @@ export default function EditarTalhao() {
                 'Content-Type': 'application/json'
               }
             });
-           
-            navigation.navigate('VerFazenda');
+             navigation.goBack();  
+             navigation.goBack();
           } catch (error) {
-            console.error('Erro ao deletar usuario:', error);
+            console.log("excluir talhao")
           }
         };
         deleteTalhao()

@@ -47,12 +47,17 @@ export default function VerFazenda() {
         setFazenda(response.data);
         
       } catch (error) {
-        console.error('Erro ao buscar fazenda:', error);
+        console.log('buscar fazenda');
       }
     };
 
     fetchFazenda();
-  }, [route.params]);
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchFazenda();
+    });
+
+  return unsubscribe;
+}, [navigation, route.params]);
 
   return (
     <SafeAreaView style={styles.container}>
