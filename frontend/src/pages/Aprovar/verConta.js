@@ -3,42 +3,119 @@ import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaVie
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
+import firebase from '@react-native-firebase/app';
+import axios from 'axios';
 
 export default function VerConta() {
   const navigation = useNavigation();
   const route = useRoute();
-  const [cliente, setCliente] = useState(null);
 
-  const clientes = [
-    { id: 1, nome: 'Cliente 1', foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRke-KojYq2QQ9p9nFqtgMUoRu9Jvvccw2vsoGtE7fIzQ&s' },
-    { id: 2, nome: 'Cliente 2', foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8eCsr2-dOzB8bGFCpv_4OY5c0a-eV5adytdPcKlTLBCPd8gWTWUkIxQR5MjABUtO6daU&usqp=CAU' },
-    { id: 3, nome: 'Cliente 3', foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTh-C6XlLDyom3ZA-YU98RZsMIx50qwU8xzlmtiK261de3VveBy0QBgOsFNac3Yb69WsBU&usqp=CAU' },
-    { id: 4, nome: 'Cliente 4', foto: 'https://cdn2.iconfinder.com/data/icons/avatar-181/48/avatar_face_man_boy_girl_female_male_woman_profile_smiley_happy_people-05-512.png' },
-    { id: 5, nome: 'Cliente 5', foto: 'https://w7.pngwing.com/pngs/900/441/png-transparent-avatar-face-man-boy-male-profile-smiley-avatar-icon.png' },
-    { id: 6, nome: 'Cliente 6', foto: 'https://cdn.icon-icons.com/icons2/2859/PNG/512/avatar_face_man_boy_male_profile_smiley_happy_people_icon_181657.png' },
-    { id: 7, nome: 'Cliente 7', foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZnWCJBWFXoxMKXQ_cAWgPOq8tEtJgUsRQp3er_BZG6_bQ_65iUHVIJs6pHeEeJFu1B3Q&usqp=CAU' },
-    { id: 8, nome: 'Cliente 8', foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQG88OHoEqetgy0Th0sFXZ0lAoq_JcTSaMJnADe7PlvZg&s' },
-    { id: 9, nome: 'Cliente 9', foto: 'https://example.com/foto1.jpg' },
-  ];
+  const [usuario, setUsuario] = useState(null);
+  const [nome, setNome] = useState('');
+  const [email, setEmail] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [cep, setCep] = useState('');
+  const [logradouro, setLogradouro] = useState('');
+  const [numero, setNumero] = useState('');
+  const [bairro, setBairro] = useState('');
+  const [cidade, setCidade] = useState('');
+  const [uf, setUf] = useState('');
+  const [complemento, setComplemento] = useState('');
 
+  const handleCliente = async () => {
+    try {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { usuarioId } = route.params;
+      await axios.put(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
+        nome: nome,
+        cep: cep,
+        logradouro: logradouro,
+        numero: numero,
+        cidade: cidade,
+        uf: uf,
+        complemento: complemento,
+        bairro: bairro,
+        telefone: telefone,
+        aprovado: true
+      }, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      navigation.goBack();
+    } catch (error) {
+      console.error('Erro ao salvar alterações:', error);
+    }
+  };
+
+  const deleteCliente = async () => {
+    try {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { usuarioId } = route.params;
+      const response = await axios.delete(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      navigation.goBack();
+    } catch (error) {
+      console.log('Erro ao deletar usuario:', error);
+    }
+  };
 
   useEffect(() => {
-    const { clienteId } = route.params;
-    const clienteEncontrado = clientes.find(cliente => cliente.id === clienteId);
-    setCliente(clienteEncontrado);
+    const fetchUsuario = async () => {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { usuarioId } = route.params;
+
+      try {
+        const response = await axios.get(`http://10.0.2.2:3000/usuario/completo/${usuarioId}`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        setUsuario(response.data);
+        setNome(response.data.nome)
+        setEmail(response.data.email)
+        setTelefone(response.data.telefone)
+        setCep(response.data.endereco.cep);
+        setLogradouro(response.data.endereco.logradouro);
+        setNumero(response.data.endereco.numero)
+        setBairro(response.data.endereco.bairro);
+        setCidade(response.data.endereco.cidade)
+        setUf(response.data.endereco.uf)
+        setComplemento(response.data.endereco.complemento);
+      } catch (error) {
+        console.log('Erro ao buscar usuário:', error);
+      }
+    };
+
+    fetchUsuario();
   }, [route.params]);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.firstHalf}>
         <View>
-          {cliente && (
+          {usuario && (
             <View style={styles.firstHalfContent}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackContainer}>
                 <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
-                <Text style={styles.title}>Ver/Editar conta</Text>
+                <Text style={styles.title}>Ver conta</Text>
               </TouchableOpacity>
-              <Image source={{ uri: cliente.foto }} style={styles.clienteFoto} />
+              <View style={styles.clienteCircle}>
+                {usuario.foto ? (
+                  <Image source={{ uri: usuario.foto }} style={styles.clienteFoto} />
+                ) : (
+                  <Feather name="user" size={24} color="white" />
+                )}
+              </View>
             </View>
           )}
         </View>
@@ -48,39 +125,39 @@ export default function VerConta() {
         <ScrollView contentContainerStyle={styles.clienteContainer}>
           <View style={styles.secondHalfInputs}>
             <Text style={styles.label}>Nome</Text>
-            <TextInput style={styles.input} placeholder="Seu nome" />
+            <TextInput style={styles.input} placeholder={usuario ? usuario.nome : ''} editable={false} value={nome} />
             <Text style={styles.label}>Email</Text>
-            <TextInput style={styles.input} placeholder="Seu email" />
+            <TextInput style={styles.input} placeholder={usuario ? usuario.email : ''} editable={false} value={email} />
             <Text style={styles.label}>Telefone</Text>
-            <TextInput style={styles.input} placeholder="Seu telefone" />
+            <TextInput style={styles.input} placeholder={usuario ? usuario.telefone : ''} editable={false} value={telefone} />
             <Text style={styles.label}>CEP</Text>
-            <TextInput style={styles.input} placeholder="Seu cep" />
+            <TextInput style={styles.input} placeholder={usuario ? usuario.cep : ''} editable={false} value={cep} />
             <Text style={styles.label}>Logradouro</Text>
-            <TextInput style={styles.input} placeholder="Seu logradouro" />
-            <Text style={styles.label}>Numero</Text>
-            <TextInput style={styles.input} placeholder="Seu número" />
+            <TextInput style={styles.input} placeholder={usuario ? usuario.logradouro : ''} editable={false} value={logradouro} />
+            <Text style={styles.label}>Número</Text>
+            <TextInput style={styles.input} placeholder={usuario ? usuario.numero : ''} editable={false} value={numero} />
             <Text style={styles.label}>Bairro</Text>
-            <TextInput style={styles.input} placeholder="Seu bairro" />
+            <TextInput style={styles.input} placeholder={usuario ? usuario.bairro : ''} editable={false} value={bairro} />
             <View style={styles.cidadeEUF}>
               <View>
                 <Text style={styles.label}>Cidade</Text>
-                <TextInput style={styles.inputCidade} placeholder="Sua cidade" />
+                <TextInput style={styles.inputCidade} placeholder={usuario ? usuario.cidade : ''} editable={false} value={cidade} />
               </View>
               <View>
                 <Text style={styles.label}>UF</Text>
-                <TextInput style={styles.inputUF} placeholder="UF" />
+                <TextInput style={styles.inputUF} placeholder={usuario ? usuario.uf : ''} editable={false} value={uf} />
               </View>
             </View>
             <Text style={styles.label}>Complemento</Text>
-            <TextInput style={styles.input} placeholder="Seu complemento" />
+            <TextInput style={styles.input} placeholder={usuario ? usuario.complemento : ''} editable={false} value={complemento} />
           </View>
         </ScrollView>
 
         <View style={styles.secondHalfButtons}>
-          <TouchableOpacity style={styles.buttonDeletar}>
+          <TouchableOpacity style={styles.buttonDeletar} onPress={deleteCliente}>
             <Text style={styles.buttonText}>Deletar cliente</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.buttonAprovar}>
+          <TouchableOpacity style={styles.buttonAprovar} onPress={handleCliente}>
             <Text style={styles.buttonText}>Aprovar</Text>
           </TouchableOpacity>
         </View>

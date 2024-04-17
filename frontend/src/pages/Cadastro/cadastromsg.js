@@ -15,7 +15,7 @@ export default function CadastroMsg() {
       <View style={styles.firstHalf}>
         <Image
           source={require('./logo.png')}
-          style={styles.image}
+          style={styles.imagem}
         />
       </View>
 
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
-  image: {
+  imagem: {
     height: 350,
     width: 350,
     resizeMode: 'contain',

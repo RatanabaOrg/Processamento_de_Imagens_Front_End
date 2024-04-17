@@ -17,7 +17,6 @@ export default function Clientes() {
     const fetchUsuarios = async () => {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
-      console.log(idToken)
       try {
         const response = await axios.get('http://10.0.2.2:3000/usuario', {
           headers: {
@@ -25,8 +24,11 @@ export default function Clientes() {
             'Content-Type': 'application/json'
           }
         });
+
+        const approvedUsuarios = response.data.filter(usuario => usuario.aprovado && usuario.cliente);
+      
         setUsuarios(response.data);
-        setFilteredUsuarios(response.data);
+        setFilteredUsuarios(approvedUsuarios);
       } catch (error) {
         console.log('Erro ao buscar usuários:', error);
       }
@@ -52,7 +54,7 @@ export default function Clientes() {
     if (searchQuery.trim() === '') {
       setFilteredUsuarios(usuarios);
     } else {
-      const filtered = usuarios.filter(usuario => usuario.nome.toLowerCase().includes(searchQuery.toLowerCase()));
+      const filtered = usuarios.filter(usuario => usuario.nome.toLowerCase().includes(searchQuery.toLowerCase()) && usuario.aprovado && usuario.cliente);
       setFilteredUsuarios(filtered);
     }
   };
@@ -63,7 +65,7 @@ export default function Clientes() {
         <View style={styles.firstHalfContent}>
           <Text style={styles.title}>Últimos clientes</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
-            {usuarios.map((usuario, index) => (
+            {filteredUsuarios.map((usuario, index) => (
               <TouchableOpacity key={index} style={styles.clienteCircle}>
                 {usuario.foto ? (
                   <Image source={{ uri: usuario.foto }} style={styles.clienteFoto} />

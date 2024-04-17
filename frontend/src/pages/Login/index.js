@@ -76,7 +76,7 @@ export default function Login() {
       <View style={styles.firstHalf}>
         <Image
           source={require('./logo.png')}
-          style={styles.image}
+          style={styles.imagem}
         />
       </View>
 
@@ -131,9 +131,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
-  image: {
-    height: 350,
-    width: 350,
+  imagem: {
+    height: 450,
+    width: 450,
     resizeMode: 'contain',
   },
   secondHalf: {

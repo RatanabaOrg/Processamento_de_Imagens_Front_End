@@ -96,10 +96,10 @@ export default function Cadastro() {
           <Image
             source={require('./logo.png')}
             style={[
-              styles.image,
+              styles.imagem,
               {
-                height: inputFocused ? 0 : (page === 1 ? 250 : 150),
-                width: inputFocused ? 0 : (page === 1 ? 250 : 150),
+                height: inputFocused ? 0 : (page === 1 ? 330 : 200),
+                width: inputFocused ? 0 : (page === 1 ? 330 : 200),
               },
             ]}
           />
