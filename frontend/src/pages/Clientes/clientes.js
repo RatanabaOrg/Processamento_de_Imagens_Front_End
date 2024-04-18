@@ -7,7 +7,6 @@ import firebase from '@react-native-firebase/app';
 import axios from 'axios';
 
 export default function Clientes() {
-
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredUsuarios, setFilteredUsuarios] = useState([]);

@@ -38,8 +38,14 @@ export default function Clientes() {
         console.log('Erro ao buscar usuários:', error);
       }
     };
+
     fetchUsuario();
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchUsuario();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const handleSignOut = () => {
     auth().signOut().then(() => { 
@@ -122,7 +128,7 @@ export default function Clientes() {
 
       <View style={styles.secondHalf}>
         <View style={styles.secondHalfInputs}>
-          <Text style={styles.label}>Nome completo</Text>
+          <Text style={styles.label}>Nome</Text>
           <TextInput style={styles.input}
             placeholder="Seu nome" editable={false} value={usuario ? usuario.nome : ''} />
           <Text style={styles.label}>Email</Text>

@@ -21,6 +21,7 @@ export default function EditarClienteEndereco() {
   const [cidade, setCidade] = useState('');
   const [uf, setUf] = useState('');
   const [complemento, setComplemento] = useState('');
+  const [enderecoId, setEnderecoId] = useState('');
 
   const fetchAddressByCEP = async (cep) => {
     try {
@@ -52,9 +53,16 @@ export default function EditarClienteEndereco() {
       const { usuarioId } = route.params;
       const response = await axios.put(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
         nome: nome,
-        email: email,
+        cep: cep,
+        logradouro: logradouro,
+        numero: numero,
+        cidade: cidade,
+        uf: uf,
+        complemento: complemento,
+        bairro: bairro,
         telefone: telefone,
-        endereco: endereco,
+        aprovado: true,
+        enderecoId: enderecoId
       }, {
         headers: {
           'Authorization': `Bearer ${idToken}`,
@@ -92,6 +100,7 @@ export default function EditarClienteEndereco() {
         setCidade(response.data.endereco.cidade)
         setUf(response.data.endereco.uf)
         setComplemento(response.data.endereco.complemento);
+        setEnderecoId(response.data.enderecoId)
       } catch (error) {
         console.log('Erro ao buscar usuário:', error);
       }

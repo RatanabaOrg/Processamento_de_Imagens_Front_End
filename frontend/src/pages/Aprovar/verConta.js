@@ -21,6 +21,7 @@ export default function VerConta() {
   const [cidade, setCidade] = useState('');
   const [uf, setUf] = useState('');
   const [complemento, setComplemento] = useState('');
+  const [enderecoId, setEnderecoId] = useState('');
 
   const handleCliente = async () => {
     try {
@@ -37,7 +38,8 @@ export default function VerConta() {
         complemento: complemento,
         bairro: bairro,
         telefone: telefone,
-        aprovado: true
+        aprovado: true,
+        enderecoId: enderecoId
       }, {
         headers: {
           'Authorization': `Bearer ${idToken}`,
@@ -91,6 +93,7 @@ export default function VerConta() {
         setCidade(response.data.endereco.cidade)
         setUf(response.data.endereco.uf)
         setComplemento(response.data.endereco.complemento);
+        setEnderecoId(response.data.enderecoId);
       } catch (error) {
         console.log('Erro ao buscar usuário:', error);
       }
