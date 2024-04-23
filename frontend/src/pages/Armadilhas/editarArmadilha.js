@@ -31,7 +31,7 @@ export default function EditarArmadilha() {
         setLatitude(response.data.latitude);
         setLongitude(response.data.longitude);
       } catch (error) {
-        console.error('Erro ao buscar usuário:', error);
+        console.log('Erro ao buscar usuário:', error);
       }
     };
 
@@ -62,7 +62,7 @@ export default function EditarArmadilha() {
            
             navigation.goBack();
           } catch (error) {
-            console.error('Erro ao deletar usuario:', error);
+            console.log('Erro ao deletar usuario:', error);
           }
         };
         deleteArmadilha() }
@@ -91,7 +91,7 @@ export default function EditarArmadilha() {
         });
         navigation.goBack();
       } catch (error) {
-        console.error('Erro ao salvar alterações:', error);
+        console.log('Erro ao salvar alterações:', error);
       }
     };
 
@@ -120,9 +120,8 @@ export default function EditarArmadilha() {
             placeholder={armadilha ? armadilha.latitude : ''} value={latitude} onChangeText={(text) => setLatitude(text)} />
 
           <Text style={styles.label}>Longitude</Text>
-          <TextInput style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
-            placeholder={armadilha ? armadilha.longitude : ''} value={longitude}
-            multiline={true} onChangeText={(text) => setLongitude(text)} />
+          <TextInput style={styles.input}
+            placeholder={armadilha ? armadilha.longitude : ''} value={longitude} onChangeText={(text) => setLongitude(text)} />
         </View>
 
         <View style={styles.secondHalfButtons}>

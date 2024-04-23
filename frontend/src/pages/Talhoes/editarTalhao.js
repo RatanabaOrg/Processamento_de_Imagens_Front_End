@@ -12,7 +12,7 @@ export default function EditarTalhao() {
   const [talhao, setTalhao] = useState(null);
   const [nome, setNome] = useState(null);
   const [tipoPlantacao, setTipoPlantacao] = useState(null);
-  const [coordenadas, setCoordenadas] = useState(null); // Corrigido o nome da variável
+  const [coordenadas, setCoordenadas] = useState(null);
 
   const handleFazenda = (talhaoId) => {
     navigation.navigate('VerFazenda', { talhaoId: talhaoId });
@@ -39,7 +39,7 @@ export default function EditarTalhao() {
              navigation.goBack();  
              navigation.goBack();
           } catch (error) {
-            console.log("excluir talhao")
+            console.log("Erro ao excluir talhao: ", error)
           }
         };
         deleteTalhao()
@@ -69,12 +69,11 @@ export default function EditarTalhao() {
       });
       navigation.goBack();
     } catch (error) {
-      console.error('Erro ao salvar alterações:', error);
+      console.log('Erro ao salvar alterações:', error);
     }
   };
 
   useEffect(() => {
-    console.log('oi')
     const fetchTalhao = async () => {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
@@ -86,7 +85,6 @@ export default function EditarTalhao() {
             'Content-Type': 'application/json'
           }
         });
-        console.log(response.data)
         setTalhao(response.data);
         setNome(response.data.nomeTalhao);
         setTipoPlantacao(response.data.tipoPlantacao);
@@ -117,7 +115,10 @@ export default function EditarTalhao() {
       <View style={styles.secondHalf}>
         <View style={styles.secondHalfInputs}>
           <Text style={styles.label}>Nome</Text>
-          <TextInput style={styles.input} placeholder={talhao ? talhao.nomeTalhao : ''} value={nome} onChangeText={(text) => setNome(text)} />
+          <TextInput style={styles.input} 
+          placeholder={talhao ? talhao.nomeTalhao : ''} 
+          value={nome} 
+          onChangeText={(text) => setNome(text)} />
 
           <Text style={styles.label}>Tipo de plantação</Text>
           <TextInput style={styles.input}

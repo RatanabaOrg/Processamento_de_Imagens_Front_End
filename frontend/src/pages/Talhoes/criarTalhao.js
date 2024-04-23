@@ -19,7 +19,6 @@ export default function CriarTalhao() {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { fazendaId } = route.params;
-      console.log(fazendaId)
       const response = await axios.post(`http://10.0.2.2:3000/talhao/cadastro`, {
         nomeTalhao: nome,
         tipoPlantacao: tipoPlantacao,
@@ -33,7 +32,7 @@ export default function CriarTalhao() {
       });
       navigation.goBack();
     } catch (error) {
-      console.error('Erro ao cadastrar fazenda:', error);
+      console.log('Erro ao cadastrar fazenda:', error);
     }
   }
 

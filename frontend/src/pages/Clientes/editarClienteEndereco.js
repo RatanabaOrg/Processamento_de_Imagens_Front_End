@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import firebase from '@react-native-firebase/app';
-import axios from 'axios'; 
+import axios from 'axios';
 
 export default function EditarClienteEndereco() {
   const navigation = useNavigation();
@@ -21,7 +21,8 @@ export default function EditarClienteEndereco() {
   const [cidade, setCidade] = useState('');
   const [uf, setUf] = useState('');
   const [complemento, setComplemento] = useState('');
-  
+  const [enderecoId, setEnderecoId] = useState('');
+
   const fetchAddressByCEP = async (cep) => {
     try {
       const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
@@ -31,9 +32,19 @@ export default function EditarClienteEndereco() {
       setCidade(localidade);
       setUf(uf);
     } catch (error) {
-      console.error('Erro ao buscar endereço pelo CEP:', error);
+      console.log('Erro ao buscar endereço pelo CEP:', error);
     }
   };
+
+  const endereco = {
+    cep: cep,
+    logradouro: logradouro,
+    numero: numero,
+    cidade: cidade,
+    bairro: bairro,
+    uf: uf,
+    complemento: complemento
+  }
 
   const handleCliente = async () => {
     try {
@@ -42,60 +53,80 @@ export default function EditarClienteEndereco() {
       const { usuarioId } = route.params;
       const response = await axios.put(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
         nome: nome,
-        email: email,
-        telefone: telefone,
         cep: cep,
         logradouro: logradouro,
         numero: numero,
         cidade: cidade,
-        bairro: bairro,
         uf: uf,
-        complemento: complemento
+        complemento: complemento,
+        bairro: bairro,
+        telefone: telefone,
+        aprovado: true,
+        enderecoId: enderecoId
       }, {
         headers: {
           'Authorization': `Bearer ${idToken}`,
           'Content-Type': 'application/json'
         }
       });
-      navigation.navigate('Main', {screen: 'Clientes'});
+      navigation.navigate('Main', { screen: 'Clientes' });
     } catch (error) {
-      console.error('Erro ao salvar alterações:', error);
+      console.log('Erro ao salvar alterações:', error);
     }
   };
 
-    useEffect(() => {
-      const fetchUsuario = async () => {
-        const currentUser = firebase.auth().currentUser;
-        const idToken = await currentUser.getIdToken();
-        const { usuarioId, nome, email, telefone } = route.params;
-        setNome(nome)
-        setEmail(email)
-        setTelefone(telefone)
-        
-        try {
-          const response = await axios.get(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
-            headers: {
-              'Authorization': `Bearer ${idToken}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          setUsuario(response.data);
-          setCep(response.data.cep);
-          console.log(response.data);
-          setLogradouro(response.data.logradouro);
-          setNumero(response.data.numero)
-          setBairro(response.data.bairro);
-          setCidade(response.data.cidade)
-          setUf(response.data.uf)
-          setComplemento(response.data.complemento);
-          console.log(response.data);
-        } catch (error) {
-          console.error('Erro ao buscar usuário:', error);
-        }
-      };
-  
-      fetchUsuario();
-    }, [route.params]);
+  useEffect(() => {
+    const fetchUsuario = async () => {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { usuarioId, nome, email, telefone } = route.params;
+      setNome(nome)
+      setEmail(email)
+      setTelefone(telefone)
+
+      try {
+        const response = await axios.get(`http://10.0.2.2:3000/usuario/completo/${usuarioId}`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        setUsuario(response.data);
+        setCep(response.data.endereco.cep);
+        setLogradouro(response.data.endereco.logradouro);
+        setNumero(response.data.endereco.numero)
+        setBairro(response.data.endereco.bairro);
+        setCidade(response.data.endereco.cidade)
+        setUf(response.data.endereco.uf)
+        setComplemento(response.data.endereco.complemento);
+        setEnderecoId(response.data.enderecoId)
+      } catch (error) {
+        console.log('Erro ao buscar usuário:', error);
+      }
+    };
+
+    fetchUsuario();
+  }, [route.params]);
+
+  const removePhoto = () => {
+    Alert.alert(
+      `Foto de perfil`, "Deseja remover a foto? \n \nCaso queira, adicionar uma foto, volte para a página anterior!",
+      [{ text: "Remover", onPress: () => { handleRemovePhoto() } },
+      { text: "Cancelar", style: "cancel" }]
+    );
+  }
+
+  const handleRemovePhoto = async () => {
+    if (usuario.foto) {
+      try {
+        const { usuarioId } = route.params;
+        await firebase.firestore().collection('DadosUsuario').doc(usuarioId).set({ foto: "" }, { merge: true });
+        setUsuario(prevUsuario => ({ ...prevUsuario, foto: "" }));
+      } catch (error) {
+        console.log('Erro ao remover imagem:', error);
+      }
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -103,48 +134,49 @@ export default function EditarClienteEndereco() {
         <View>
           {usuario && (
             <View style={styles.firstHalfContent}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackContainer}>
-              <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
-              <Text style={styles.title}>Ver/Editar {usuario.nome}</Text>
+              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackContainer}>
+                <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
+                <Text style={styles.title}>Ver/Editar {usuario.nome}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.clienteCircle} 
+                onPress={removePhoto}>
+                {usuario && usuario.foto ? (
+                  <Image source={{ uri: usuario.foto }} style={styles.clienteFoto} />
+                ) : (
+                  <Feather name="user" size={24} color="white" />
+                )}
             </TouchableOpacity>
-            <View style={styles.clienteCircle}>
-              {usuario.foto ? (
-                <Image source={{ uri: usuario.foto }} style={styles.clienteFoto} />
-              ) : (
-                <Feather name="user" size={24} color="white" />
-              )}
-              </View>
-          </View>
+            </View>
           )}
         </View>
       </View>
       <View style={styles.secondHalf}>
-      <View style={styles.secondHalfInputs}>
-        <Text style={styles.label}>CEP</Text>
-        <TextInput style={styles.input} placeholder={usuario ? usuario.cep : ''} value={cep} onChangeText={(text) => setCep(text)} onBlur={() => fetchAddressByCEP(cep)}/>
-        <Text style={styles.label}>Logradouro</Text>
-        <TextInput style={styles.input} placeholder={usuario ? usuario.logradouro: ''} value={logradouro} onChangeText={(text) => setLogradouro(text)}/>
-        <Text style={styles.label}>Número</Text>
-        <TextInput style={styles.input} placeholder={usuario ? usuario.numero : ''} value={numero} onChangeText={(text) => setNumero(text)}/>
-        <Text style={styles.label}>Bairro</Text>
-        <TextInput style={styles.input} placeholder={usuario ? usuario.bairro: ''} value={bairro} onChangeText={(text) => setBairro(text)}/>
-        <View style={styles.cidadeEUF}>
-          <View>
-          <Text style={styles.label}>Cidade</Text>
-          <TextInput style={styles.inputCidade} placeholder={usuario ? usuario.cidade: ''} value={cidade} onChangeText={(text) => setCidade(text)}/>
+        <View style={styles.secondHalfInputs}>
+          <Text style={styles.label}>CEP</Text>
+          <TextInput style={styles.input} placeholder={usuario ? usuario.cep : ''} value={cep} onChangeText={(text) => setCep(text)} onBlur={() => fetchAddressByCEP(cep)} />
+          <Text style={styles.label}>Logradouro</Text>
+          <TextInput style={styles.input} placeholder={usuario ? usuario.logradouro : ''} value={logradouro} onChangeText={(text) => setLogradouro(text)} />
+          <Text style={styles.label}>Número</Text>
+          <TextInput style={styles.input} placeholder={usuario ? usuario.numero : ''} value={numero} onChangeText={(text) => setNumero(text)} />
+          <Text style={styles.label}>Bairro</Text>
+          <TextInput style={styles.input} placeholder={usuario ? usuario.bairro : ''} value={bairro} onChangeText={(text) => setBairro(text)} />
+          <View style={styles.cidadeEUF}>
+            <View>
+              <Text style={styles.label}>Cidade</Text>
+              <TextInput style={styles.inputCidade} placeholder={usuario ? usuario.cidade : ''} value={cidade} onChangeText={(text) => setCidade(text)} />
+            </View>
+            <View>
+              <Text style={styles.label}>UF</Text>
+              <TextInput style={styles.inputUF} placeholder={usuario ? usuario.uf : ''} value={uf} onChangeText={(text) => setUf(text)} />
+            </View>
           </View>
-          <View>
-          <Text style={styles.label}>UF</Text>
-          <TextInput style={styles.inputUF} placeholder={usuario ? usuario.uf: ''} value={uf} onChangeText={(text) => setUf(text)}/>
-          </View>
+          <Text style={styles.label}>Complemento</Text>
+          <TextInput style={styles.input} placeholder={usuario ? usuario.complemento : ''} value={complemento} onChangeText={(text) => setComplemento(text)} />
         </View>
-        <Text style={styles.label}>Complemento</Text>
-        <TextInput style={styles.input} placeholder={usuario ? usuario.complemento : ''} value={complemento} onChangeText={(text) => setComplemento(text)}/>
+        <TouchableOpacity style={styles.button} onPress={handleCliente}>
+          <Text style={styles.buttonText}>Salvar alterações</Text>
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.button} onPress={handleCliente}>
-        <Text style={styles.buttonText}>Salvar alterações</Text>
-      </TouchableOpacity>
-      </View> 
     </SafeAreaView>
   );
 }
@@ -159,7 +191,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
-  firstHalfContent:{
+  firstHalfContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -173,11 +205,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: "#fff"
   },
+  clienteCircle: {
+    width: 58,
+    height: 58,
+    borderRadius: 75,
+    borderWidth: 2,
+    borderColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+    zIndex: 1,
+    alignSelf: 'center'
+  },
   clienteFoto: {
-    width: 55,
-    height: 55,
+    width: 54,
+    height: 54,
     borderRadius: 30,
-    backgroundColor: '#CCC'
+    backgroundColor: '#fff'
   },
   secondHalf: {
     flex: 8.0,
@@ -188,7 +232,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   secondHalfInputs: {
-    marginTop: 12,
+    marginTop: 50,
   },
   cidadeEUF: {
     flexDirection: 'row'

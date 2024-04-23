@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import { Picker } from '@react-native-picker/picker';
 import firebase from '@react-native-firebase/app';
-import axios from 'axios'; 
+import axios from 'axios';
 
 export default function CriarFazenda() {
 
@@ -13,42 +13,94 @@ export default function CriarFazenda() {
   const [agricultor, setAgricultor] = useState('');
   const [coordenadas, setCoordenadas] = useState('');
   const [hasCEP, setHasCEP] = useState(false);
+  const [usuarios, setUsuarios] = useState([]);
+  const [agricultores, setAgricultores] = useState([]);
+  const [cliente, setCliente] = useState(true);
 
-  const agricultores = [
-    { id: 1, nome: 'Agricultor 1' },
-    { id: 2, nome: 'Agricultor 2' },
-    { id: 3, nome: 'Agricultor 3' },
-    { id: 4, nome: 'Agricultor 4' },
-  ];
+  useEffect(() => {
+    const fetchUsuarios = async () => {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const id = await currentUser.uid;
+      
+      setAgricultor(id);
+  
+      try {
+        const response = await axios.get(`http://10.0.2.2:3000/usuario/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+  
+        setCliente(response.data.cliente);
+  
+        if (response.data.cliente === false) {
+          const responseUsuarios = await axios.get('http://10.0.2.2:3000/usuario', {
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+  
+          const afterAgricultores = responseUsuarios.data.map(item => {
+            if (id !== item.id) {
+              return {
+                id: item.id,
+                nome: item.nome
+              };
+            }
+            return null; 
+          }).filter(item => item !== null);
+  
+          setAgricultores(afterAgricultores);
+        }
+      } catch (error) {
+        console.log('Erro ao buscar usuários:', error);
+      }
+    };
+  
+    fetchUsuarios();
+  }, []);
 
   const handleNextPage = () => {
-    navigation.navigate('CriarFazendaCep', { 
+    navigation.navigate('CriarFazendaCep', {
       nome: nome,
-      agricultor: agricultor,
       cordenadasSede: coordenadas,
+      usuarioId: agricultor
     });
   };
 
   const handleSubmit = async () => {
+    console.log(
+     { nomeFazenda: nome,
+      agricultor: agricultor,
+      coordenadaSede: coordenadas,
+      usuarioId: agricultor,
+      endereco: {}}
+    );
     try {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const response = await axios.post(`http://10.0.2.2:3000/fazenda/cadastro`, {
         nomeFazenda: nome,
         agricultor: agricultor,
-        coordenadaSede: coordenadas
-    }, {
+        coordenadaSede: coordenadas,
+        usuarioId: agricultor,
+        endereco: {}
+      }, {
         headers: {
           'Authorization': `Bearer ${idToken}`,
           'Content-Type': 'application/json'
         }
       });
-      navigation.navigate('Main', {screen: 'Clientes'});
+      navigation.navigate('Main', { screen: 'Clientes' });
     } catch (error) {
-      console.error('Erro ao cadastrar fazenda:', error);
+      console.log('Erro ao cadastrar fazenda:', error);
     }
   }
-  
+
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.firstHalf}>
@@ -65,28 +117,32 @@ export default function CriarFazenda() {
       <View style={styles.secondHalf}>
         <View style={styles.secondHalfInputs}>
           <Text style={styles.label}>Nome</Text>
-          <TextInput style={[styles.input, { paddingLeft: 16 }]} 
-          placeholder="Nome" onChangeText={(text) => setNome(text)} />
+          <TextInput style={[styles.input, { paddingLeft: 16 }]}
+            placeholder="Nome" onChangeText={(text) => setNome(text)} />
 
-          <Text style={styles.label}>Agricultor</Text>
-          <View style={styles.input}>
-            <Picker
-              selectedValue={agricultor}
-              onValueChange={(itemValue, itemIndex) => setAgricultor(itemValue)}
-            >
-              <Picker.Item label="Escolha" value="" />
-              {agricultores.map((agricultor) => (
-                <Picker.Item key={agricultor.id} label={agricultor.nome} value={agricultor.nome} />
-              ))}
-            </Picker>
-          </View>
+          {agricultores.length > 0 ? (
+            <>
+              <Text style={styles.label}>Agricultor</Text>
+              <View style={styles.input}>
+                <Picker
+                  selectedValue={agricultor}
+                  onValueChange={(itemValue, itemIndex) => setAgricultor(itemValue)}
+                >
+                  <Picker.Item label="Escolha" value="" />
+                  {agricultores.map((agricultor) => (
+                    <Picker.Item key={agricultor.id} label={agricultor.nome} value={agricultor.id} />
+                  ))}
+                </Picker>
+              </View>
+            </>
+          ) : null}
 
           <Text style={styles.label}>Coordenadas da sede</Text>
           <TextInput style={[styles.input, { height: 100, paddingLeft: 16, textAlignVertical: 'top' }]}
             placeholder="[[Latitude, Longitude],[Latitude, Longitude]]"
             multiline={true} onChangeText={(text) => setCoordenadas(text)} />
 
-          <Text style={styles.label}>A fazenda possuí um CEP?</Text>
+          <Text style={styles.label}>A fazenda possui CEP?</Text>
           <View style={styles.input}>
             <Picker
               selectedValue={hasCEP}
