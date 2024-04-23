@@ -48,7 +48,7 @@ export default function VerConta() {
       });
       navigation.goBack();
     } catch (error) {
-      console.error('Erro ao salvar alterações:', error);
+      console.log('Erro ao salvar alterações:', error);
     }
   };
 
@@ -193,11 +193,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: "#fff"
   },
+  clienteCircle: {
+    width: 58,
+    height: 58,
+    borderRadius: 75,
+    borderWidth: 2,
+    borderColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+    zIndex: 1,
+    alignSelf: 'center'
+  },
   clienteFoto: {
-    width: 55,
-    height: 55,
+    width: 54,
+    height: 54,
     borderRadius: 30,
-    backgroundColor: '#ccc'
+    backgroundColor: '#fff'
   },
   secondHalf: {
     flex: 8.3,
@@ -251,7 +263,7 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     justifyContent: 'space-between',
     alignItems: 'center',
-    height: 88,
+    height: 48,
   },
   buttonDeletar: {
     backgroundColor: '#DE1B00',

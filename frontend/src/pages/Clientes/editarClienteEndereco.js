@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
@@ -32,7 +32,7 @@ export default function EditarClienteEndereco() {
       setCidade(localidade);
       setUf(uf);
     } catch (error) {
-      console.error('Erro ao buscar endereço pelo CEP:', error);
+      console.log('Erro ao buscar endereço pelo CEP:', error);
     }
   };
 
@@ -91,7 +91,6 @@ export default function EditarClienteEndereco() {
             'Content-Type': 'application/json'
           }
         });
-        console.log(response.data);
         setUsuario(response.data);
         setCep(response.data.endereco.cep);
         setLogradouro(response.data.endereco.logradouro);
@@ -109,6 +108,26 @@ export default function EditarClienteEndereco() {
     fetchUsuario();
   }, [route.params]);
 
+  const removePhoto = () => {
+    Alert.alert(
+      `Foto de perfil`, "Deseja remover a foto? \n \nCaso queira, adicionar uma foto, volte para a página anterior!",
+      [{ text: "Remover", onPress: () => { handleRemovePhoto() } },
+      { text: "Cancelar", style: "cancel" }]
+    );
+  }
+
+  const handleRemovePhoto = async () => {
+    if (usuario.foto) {
+      try {
+        const { usuarioId } = route.params;
+        await firebase.firestore().collection('DadosUsuario').doc(usuarioId).set({ foto: "" }, { merge: true });
+        setUsuario(prevUsuario => ({ ...prevUsuario, foto: "" }));
+      } catch (error) {
+        console.log('Erro ao remover imagem:', error);
+      }
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.firstHalf}>
@@ -119,13 +138,14 @@ export default function EditarClienteEndereco() {
                 <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
                 <Text style={styles.title}>Ver/Editar {usuario.nome}</Text>
               </TouchableOpacity>
-              <View style={styles.clienteCircle}>
-                {usuario.foto ? (
+              <TouchableOpacity style={styles.clienteCircle} 
+                onPress={removePhoto}>
+                {usuario && usuario.foto ? (
                   <Image source={{ uri: usuario.foto }} style={styles.clienteFoto} />
                 ) : (
                   <Feather name="user" size={24} color="white" />
                 )}
-              </View>
+            </TouchableOpacity>
             </View>
           )}
         </View>
@@ -185,11 +205,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: "#fff"
   },
+  clienteCircle: {
+    width: 58,
+    height: 58,
+    borderRadius: 75,
+    borderWidth: 2,
+    borderColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+    zIndex: 1,
+    alignSelf: 'center'
+  },
   clienteFoto: {
-    width: 55,
-    height: 55,
+    width: 54,
+    height: 54,
     borderRadius: 30,
-    backgroundColor: '#CCC'
+    backgroundColor: '#fff'
   },
   secondHalf: {
     flex: 8.0,
@@ -200,7 +232,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   secondHalfInputs: {
-    marginTop: 12,
+    marginTop: 50,
   },
   cidadeEUF: {
     flexDirection: 'row'

@@ -18,7 +18,7 @@ export default function CriarFazendaCep() {
   const [complemento, setComplemento] = useState('');
 
   const CriarFazendaCep = route.params;
-  console.log(CriarFazendaCep);
+  // console.log(CriarFazendaCep);
 
   const handleFazendas = async () => {
     try {
@@ -45,9 +45,8 @@ export default function CriarFazendaCep() {
       });
       navigation.navigate('Main', { screen: 'Fazenda' });
     } catch (error) {
-      console.error('Erro ao cadastrar fazenda:', error);
+      console.log('Erro ao cadastrar fazenda:', error);
     }
-    // aparecer mensagem de erro e perguntar se quer voltar para pagina anterior ou tentar de novo
     navigation.navigate('Main', { screen: 'Fazenda' });
   };
 
@@ -60,7 +59,7 @@ export default function CriarFazendaCep() {
       setCidade(localidade);
       setUF(uf);
     } catch (error) {
-      console.error('Erro ao buscar endereço pelo CEP:', error);
+      console.log('Erro ao buscar endereço pelo CEP:', error);
     }
   };
 
@@ -121,27 +120,6 @@ export default function CriarFazendaCep() {
     </SafeAreaView>
   );
 }
-
-const checkCEP = (text) => {
-  console.log('entreii')
-  fetch(`https://viacep.com.br/ws/${text}/json/`)
-    .then((res) => res.json())
-    .then((data) => {
-      setLogradouro(data.logradouro);
-      setBairro(data.bairro);
-      setCidade(data.localidade);
-      setUF(data.uf);
-      setDisabled(true);
-    })
-    .catch((err) => {
-      Alert.alert('Erro ao buscar o endereço');
-      setDisabled(false);
-      setLogradouro('');
-      setBairro('');
-      setCidade('');
-      setUF('');
-    });
-};
 
 
 const styles = StyleSheet.create({

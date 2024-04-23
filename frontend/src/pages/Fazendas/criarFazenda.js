@@ -22,7 +22,9 @@ export default function CriarFazenda() {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const id = await currentUser.uid;
-      setAgricultor(id)
+      
+      setAgricultor(id);
+  
       try {
         const response = await axios.get(`http://10.0.2.2:3000/usuario/${id}`, {
           headers: {
@@ -30,37 +32,36 @@ export default function CriarFazenda() {
             'Content-Type': 'application/json'
           }
         });
+  
         setCliente(response.data.cliente);
-      } catch (error) {
-        console.log('Erro ao buscar usuários:', error);
-      }
-
-      if (!cliente) {
-        try {
-          const response = await axios.get('http://10.0.2.2:3000/usuario', {
+  
+        if (response.data.cliente === false) {
+          const responseUsuarios = await axios.get('http://10.0.2.2:3000/usuario', {
             headers: {
               'Authorization': `Bearer ${idToken}`,
               'Content-Type': 'application/json'
             }
           });
-          console.log(response.data);
-          var afterAgricultores = []
-          for (let k = 0; k < response.data.length; k++) {
-            afterAgricultores.push({ id: response.data[k].id, nome: response.data[k].nome })
-
-          }
-          console.log(afterAgricultores);
+  
+          const afterAgricultores = responseUsuarios.data.map(item => {
+            if (id !== item.id) {
+              return {
+                id: item.id,
+                nome: item.nome
+              };
+            }
+            return null; 
+          }).filter(item => item !== null);
+  
           setAgricultores(afterAgricultores);
-        } catch (error) {
-          console.log('Erro ao buscar usuários:', error);
         }
+      } catch (error) {
+        console.log('Erro ao buscar usuários:', error);
       }
     };
-
-    console.log(agricultor);
-
+  
     fetchUsuarios();
-  }, [])
+  }, []);
 
   const handleNextPage = () => {
     navigation.navigate('CriarFazendaCep', {
@@ -95,7 +96,7 @@ export default function CriarFazenda() {
       });
       navigation.navigate('Main', { screen: 'Clientes' });
     } catch (error) {
-      console.error('Erro ao cadastrar fazenda:', error);
+      console.log('Erro ao cadastrar fazenda:', error);
     }
   }
 

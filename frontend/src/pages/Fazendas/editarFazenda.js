@@ -45,7 +45,7 @@ export default function EditarFazenda() {
               navigation.goBack();
               navigation.goBack();
             } catch (error) {
-              console.log('deletar fazenda');
+              console.log('Erro ao deletar fazenda: ', error);
             }
           };
           deleteFazenda()
@@ -83,7 +83,7 @@ export default function EditarFazenda() {
       });
       navigation.navigate('Main', { screen: 'Fazendas' });
     } catch (error) {
-      console.error('Erro ao salvar alterações:', error);
+      console.log('Erro ao salvar alterações:', error);
     }
   };
 
@@ -92,7 +92,6 @@ export default function EditarFazenda() {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { fazendaId } = route.params;
-      console.log(fazendaId)
       try {
         const response = await axios.get(`http://10.0.2.2:3000/fazenda/completo/${fazendaId}`, {
           headers: {
@@ -118,7 +117,7 @@ export default function EditarFazenda() {
         setUsuarioId(response.data.usuarioId);
         setEnderecoId(response.data.enderecoId);
       } catch (error) {
-        console.error('Erro ao buscar fazenda:', error);
+        console.log('Erro ao buscar fazenda:', error);
       }
     };
 

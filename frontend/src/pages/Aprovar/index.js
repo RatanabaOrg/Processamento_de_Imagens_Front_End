@@ -16,7 +16,6 @@ export default function AprovarContas() {
     const fetchUsuarios = async () => {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
-      console.log(idToken)
       try {
         const response = await axios.get('http://10.0.2.2:3000/usuario', {
           headers: {
@@ -58,7 +57,7 @@ export default function AprovarContas() {
       </View>
 
       <View style={styles.secondHalf}>
-      <ScrollView contentContainerStyle={styles.clienteContainer}>
+      <ScrollView>
           {filteredUsuarios.map(usuario => (
             <TouchableOpacity key={usuario.id} style={styles.cliente} onPress={() => handleClient(usuario.id)}>
               <View style={styles.clienteContent}>
@@ -69,9 +68,9 @@ export default function AprovarContas() {
                     <Feather name="user" size={24} color="white" />
                   )}
                 </View>
-                <Text style={styles.clienteNome}>{usuario.nome}</Text>
+                <Text>{usuario.nome}</Text>
                 <TouchableOpacity style={styles.arrowIcon} onPress={() => handleClient(usuario.id)}>
-                  <Feather name="arrow-right" size={24} color="black" style={styles.searchIcon} />
+                  <Feather name="arrow-right" size={32} color="black" />
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -124,8 +123,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
     backgroundColor: '#fff',
-    padding: 8,
-    borderRadius: 10,
+    padding: 12,
+    borderRadius: 14,
   },
   clienteContent: {
     flexDirection: 'row',
@@ -133,17 +132,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   clienteCircle: {
-    width: 60,
-    height: 60,
+    width: 50,
+    height: 50,
     borderRadius: 30,
     backgroundColor: '#ccc',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    marginRight: 12,
   },
   clienteFoto: {
-    width: 60,
-    height: 60,
+    width: 50,
+    height: 50,
     borderRadius: 30,
   },
   clienteNome: {

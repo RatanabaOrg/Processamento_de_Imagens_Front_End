@@ -43,7 +43,7 @@ export default function VerTalhao() {
         });
         setTalhao(response.data);
       } catch (error) {
-        console.log('buscar talhao');
+        console.log('Erro ao buscar talhao: ', error);
       }
     };
 
@@ -89,19 +89,19 @@ export default function VerTalhao() {
         
         <Text style={styles.armadilhas}>Armadilhas</Text>
 
-        <ScrollView contentContainerStyle={styles.armadilhaContainer}>
+        <ScrollView>
         {talhao && talhao.armadilha && talhao.armadilha.length > 0 ? (
           talhao.armadilha.map(armadilha => (
             <TouchableOpacity key={armadilha.id} style={styles.armadilha} onPress={() => handleArmadilha(armadilha.id)}>
               <View style={styles.armadilhaContent}>
-                <View style={styles.armadilhaFoto} />
+                <View style={styles.armadilhaCircle} />
 
                 <View>
-                  <Text style={styles.armadilhaNome}>{armadilha.nomeArmadilha}</Text>
+                  <Text>{armadilha.nomeArmadilha}</Text>
                 </View>
 
                 <TouchableOpacity style={styles.arrowIcon} onPress={() => handleArmadilha(armadilha.id)}>
-                  <Feather name="arrow-right" size={24} color="black" />
+                  <Feather name="arrow-right" size={32} color="black" />
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -187,37 +187,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
     backgroundColor: '#fff',
-    padding: 10,
-    borderRadius: 10,
+    padding: 12,
+    borderRadius: 14,
   },
   armadilhaContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  armadilhaFoto: {
-    width: 48,
-    height: 48,
+  armadilhaCircle: {
+    width: 50,
+    height: 50,
     borderRadius: 30,
-    backgroundColor: '#8194D8',
+    backgroundColor: '#FCFF51',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    marginRight: 12,
   },
   arrowIcon: {
     marginLeft: 'auto',
   },
+
   button: {
     backgroundColor: '#FF8C00',
     borderRadius: 10,
     padding: 12,
+    alignItems: 'center',
     marginTop: 18,
     marginBottom: 18,
   },
   buttonText: {
     color: 'white',
     fontSize: 16,
-    textAlign: 'center',
   },
 
 });

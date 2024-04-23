@@ -1,31 +1,41 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert } from 'react-native';
+import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import firebase from '@react-native-firebase/app';
 import auth from '@react-native-firebase/auth';
 import axios from 'axios';
 
 export default function Login() {
-
   const navigation = useNavigation();
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [imageSize, setImageSize] = useState(450);
+  const [inputFocused, setInputFocused] = useState(false);
+
+  const handleInputFocus = () => {
+    setImageSize(280);
+    setInputFocused(true);
+
+    setTimeout(() => {
+      setInputFocused(false);
+      setImageSize(450);
+    }, 12000);
+  };
 
   const handleLogin = async () => {
     if (email === '' || password === '') {
       setErrorMessage('Preencha todos os campos');
       return;
-    } 
-  
+    }
+
     try {
       await auth().signInWithEmailAndPassword(email, password);
-  
+
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const usuarioId = currentUser.uid;
-  
+
       try {
         const response = await axios.get(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
           headers: {
@@ -33,24 +43,22 @@ export default function Login() {
             'Content-Type': 'application/json'
           }
         });
-  
-        const userData = response.data;
 
+        const userData = response.data;
         if (!userData.aprovado) {
           setErrorMessage('Usuário não aprovado!');
           return;
         }
-  
+
         if (userData.cliente) {
           navigation.navigate('Main', { screen: 'Fazendas' });
         } else {
           navigation.navigate('Main', { screen: 'Clientes' });
         }
-  
       } catch (error) {
         console.log('Erro ao buscar usuário:', error);
       }
-  
+
     } catch (error) {
       console.log(error);
       if (error.code === 'auth/invalid-login') {
@@ -74,9 +82,12 @@ export default function Login() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.firstHalf}>
-        <Image
-          source={require('./logo.png')}
-          style={styles.imagem}
+        <Image source={require('./logo.png')}
+          style={[styles.imagem, {
+            height: inputFocused ? 280 : 450,
+            width: inputFocused ? 280 : 450,
+          },
+          ]}
         />
       </View>
 
@@ -92,6 +103,7 @@ export default function Login() {
           keyboardType="email-address"
           autoCapitalize="none"
           autoCompleteType="email"
+          onFocus={handleInputFocus}
         />
 
         <Text style={styles.label}>Senha</Text>
@@ -101,6 +113,7 @@ export default function Login() {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          onFocus={handleInputFocus}
         />
 
         {errorMessage ? <Text style={styles.errorMessage}>{errorMessage}</Text> : null}
@@ -132,8 +145,6 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   imagem: {
-    height: 450,
-    width: 450,
     resizeMode: 'contain',
   },
   secondHalf: {
@@ -142,7 +153,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     paddingHorizontal: 30,
-    // paddingTop: 20,
     zIndex: 1,
     justifyContent: 'center',
   },

@@ -32,7 +32,7 @@ export default function CriarTalhao() {
       });
       navigation.goBack();
     } catch (error) {
-      console.error('Erro ao cadastrar fazenda:', error);
+      console.log('Erro ao cadastrar fazenda:', error);
     }
   }
 

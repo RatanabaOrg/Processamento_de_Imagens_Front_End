@@ -91,8 +91,8 @@ const MainTabNavigator = () => {
         },
         tabBarActiveTintColor: '#FF8C00',
         tabBarInactiveTintColor: '#000',
-        tabBarLabelStyle: { fontSize: 13 },
-        tabBarStyle: { backgroundColor: '#E9EEEB' }
+        tabBarLabelStyle: { fontSize: 13, paddingBottom: 10, },
+        tabBarStyle: { backgroundColor: '#E9EEEB', paddingTop: 10, height: 70, }
       })}
     >
       {!userData.cliente && (

@@ -45,9 +45,8 @@ export default function VerFazenda() {
           }
         });
         setFazenda(response.data);
-        
       } catch (error) {
-        console.log('buscar fazenda');
+        console.log('Erro ao buscar fazenda: ', error);
       }
     };
 
@@ -96,19 +95,19 @@ export default function VerFazenda() {
         
         <Text style={styles.talhoes}>Talhões</Text>
 
-        <ScrollView contentContainerStyle={styles.talhaoContainer}>
+        <ScrollView>
         {fazenda && fazenda.talhoes && fazenda.talhoes.length > 0 ? (
           fazenda.talhoes.map(talhao => (
             <TouchableOpacity key={talhao.id} style={styles.talhao} onPress={() => handleTalhao(talhao.id)}>
               <View style={styles.talhaoContent}>
-                <View style={styles.talhaoFoto} />
+                <View style={styles.talhaoCircle} />
 
                 <View>
-                  <Text style={styles.talhaoNome}>{talhao.nomeTalhao}</Text>
+                  <Text>{talhao.nomeTalhao}</Text>
                 </View>
 
                 <TouchableOpacity style={styles.arrowIcon} onPress={() => handleTalhao(talhao.id)}>
-                  <Feather name="arrow-right" size={24} color="black" />
+                  <Feather name="arrow-right" size={32} color="black" />
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -153,6 +152,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: "#fff"
   },
+
   secondHalf: {
     flex: 8.3,
     backgroundColor: '#E9EEEB',
@@ -183,6 +183,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     fontWeight: '500',
   },
+
   talhoes: {
     color: '#000',
     fontSize: 18,
@@ -194,37 +195,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
     backgroundColor: '#fff',
-    padding: 10,
-    borderRadius: 10,
+    padding: 12,
+    borderRadius: 14,
   },
   talhaoContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  talhaoFoto: {
-    width: 48,
-    height: 48,
+  talhaoCircle: {
+    width: 50,
+    height: 50,
     borderRadius: 30,
     backgroundColor: '#8194D8',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    marginRight: 12,
   },
   arrowIcon: {
     marginLeft: 'auto',
   },
+
   button: {
     backgroundColor: '#FF8C00',
     borderRadius: 10,
     padding: 12,
+    alignItems: 'center',
     marginTop: 18,
     marginBottom: 18,
   },
   buttonText: {
     color: 'white',
     fontSize: 16,
-    textAlign: 'center',
   },
 
 });

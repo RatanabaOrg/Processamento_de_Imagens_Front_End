@@ -7,7 +7,6 @@ import auth from '@react-native-firebase/auth';
 import axios from 'axios';
 
 import storage from '@react-native-firebase/storage';
-import firestore from '@react-native-firebase/firestore';
 import ImagePicker from 'react-native-image-crop-picker';
 // import DocumentPicker from 'react-native-document-picker';
 
@@ -93,8 +92,8 @@ export default function Clientes() {
       const exit = imgName.split('.').pop();
       const newName = `${imgName.split('.')[0]}${Date.now()}.${exit}`;
       try {
-        const response = await storage().ref(`images/${newName}`).putFile(uri);
-        const imgUrl = await storage().ref(`images/${newName}`).getDownloadURL();
+        const response = await storage().ref(`perfil/${newName}`).putFile(uri);
+        const imgUrl = await storage().ref(`perfil/${newName}`).getDownloadURL();
         
         const currentUser = firebase.auth().currentUser;
         const id = await currentUser.uid;
@@ -109,6 +108,27 @@ export default function Clientes() {
 
   function handleDiscardImg() { setModalVisible(false); }
 
+  const removePhoto = () => {
+    Alert.alert(
+      `Foto de perfil`, "Deseja remover a foto?",
+      [{ text: "Confirmar", onPress: () => { handleRemovePhoto() } },
+      { text: "Cancelar", style: "cancel" }]
+    );
+  }
+
+  const handleRemovePhoto = async () => {
+    if (usuario.foto) {
+      try {
+        const currentUser = firebase.auth().currentUser;
+        const id = await currentUser.uid;
+        await firebase.firestore().collection('DadosUsuario').doc(id).set({ foto: "" }, { merge: true });
+        setUsuario(prevUsuario => ({ ...prevUsuario, foto: "" }));
+      } catch (error) {
+        console.log('Erro ao remover imagem:', error);
+      }
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.firstHalf}>
@@ -118,7 +138,8 @@ export default function Clientes() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.clienteCircle} onPress={showFileOptions}>
+      <TouchableOpacity style={styles.clienteCircle} 
+      onPress={showFileOptions} onLongPress={removePhoto}>
         {usuario && usuario.foto ? (
           <Image source={{ uri: usuario.foto }} style={styles.clienteFoto} />
         ) : (
@@ -193,6 +214,8 @@ const styles = StyleSheet.create({
     width: 154,
     height: 154,
     borderRadius: 75,
+    borderWidth: 4,
+    borderColor: '#fff',
     backgroundColor: '#ddd',
     justifyContent: 'center',
     alignItems: 'center',
