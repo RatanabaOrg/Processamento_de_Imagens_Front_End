@@ -26,6 +26,8 @@ import CriarTalhao from '../pages/Talhoes/criarTalhao';
 import EditarArmadilha from '../pages/Armadilhas/editarArmadilha';
 import CriarArmadilha from '../pages/Armadilhas/criarArmadilha';
 
+import Analisar from '../pages/Analisar';
+
 import Perfil from '../pages/Perfil';
 import EditarPerfil from '../pages/Perfil/editarPerfil';
 
@@ -75,6 +77,8 @@ const MainTabNavigator = () => {
             iconName = 'users';
           } else if (route.name === 'Fazendas') {
             iconName = 'layers';
+          } else if (route.name === 'Analisar') {
+            iconName = 'camera';
           } else if (route.name === 'Perfil') {
             iconName = 'person-circle-outline';
           }
@@ -99,6 +103,7 @@ const MainTabNavigator = () => {
         <Tab.Screen name="Clientes" component={Clientes} options={{ headerShown: false }} />
       )}
       <Tab.Screen name="Fazendas" component={Fazendas} options={{ headerShown: false }} />
+      <Tab.Screen name="Analisar" component={Analisar} options={{ headerShown: false }} />
       <Tab.Screen name="Perfil" component={Perfil} options={{ headerShown: false }} />
     </Tab.Navigator>
   );

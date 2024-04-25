@@ -13,7 +13,6 @@ export default function CriarFazenda() {
   const [agricultor, setAgricultor] = useState('');
   const [coordenadas, setCoordenadas] = useState('');
   const [hasCEP, setHasCEP] = useState(false);
-  const [usuarios, setUsuarios] = useState([]);
   const [agricultores, setAgricultores] = useState([]);
   const [cliente, setCliente] = useState(true);
 
@@ -139,7 +138,7 @@ export default function CriarFazenda() {
 
           <Text style={styles.label}>Coordenadas da sede</Text>
           <TextInput style={[styles.input, { height: 100, paddingLeft: 16, textAlignVertical: 'top' }]}
-            placeholder="[[Latitude, Longitude],[Latitude, Longitude]]"
+            placeholder="[[Latitude, Longitude], [Latitude, Longitude]]"
             multiline={true} onChangeText={(text) => setCoordenadas(text)} />
 
           <Text style={styles.label}>A fazenda possui CEP?</Text>

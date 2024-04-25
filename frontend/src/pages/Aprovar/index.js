@@ -11,6 +11,7 @@ export default function AprovarContas() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredUsuarios, setFilteredUsuarios] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUsuarios = async () => {
@@ -28,8 +29,10 @@ export default function AprovarContas() {
       
         setUsuarios(response.data);
         setFilteredUsuarios(approvedUsuarios);
+        setLoading(false);
       } catch (error) {
         console.log('Erro ao buscar usuários:', error);
+        setLoading(false);
       }
     };
 
@@ -57,25 +60,31 @@ export default function AprovarContas() {
       </View>
 
       <View style={styles.secondHalf}>
-      <ScrollView>
-          {filteredUsuarios.map(usuario => (
-            <TouchableOpacity key={usuario.id} style={styles.cliente} onPress={() => handleClient(usuario.id)}>
-              <View style={styles.clienteContent}>
-              <View style={styles.clienteCircle}>
-                  {usuario.foto ? (
-                    <Image source={{ uri: usuario.foto }} style={styles.clienteFoto} />
-                  ) : (
-                    <Feather name="user" size={24} color="white" />
-                  )}
+        {loading ? (
+          <Text style={{ textAlign: 'center', marginTop: 20 }}>Carregando...</Text>
+        ) : filteredUsuarios.length === 0 ? (
+          <Text style={{ textAlign: 'center', marginTop: 20 }}>Não há nenhuma conta para aprovar no momento.</Text>
+        ) : (
+          <ScrollView>
+            {filteredUsuarios.map(usuario => (
+              <TouchableOpacity key={usuario.id} style={styles.cliente} onPress={() => handleClient(usuario.id)}>
+                <View style={styles.clienteContent}>
+                  <View style={styles.clienteCircle}>
+                    {usuario.foto ? (
+                      <Image source={{ uri: usuario.foto }} style={styles.clienteFoto} />
+                    ) : (
+                      <Feather name="user" size={24} color="white" />
+                    )}
+                  </View>
+                  <Text>{usuario.nome}</Text>
+                  <TouchableOpacity style={styles.arrowIcon} onPress={() => handleClient(usuario.id)}>
+                    <Feather name="arrow-right" size={32} color="black" />
+                  </TouchableOpacity>
                 </View>
-                <Text>{usuario.nome}</Text>
-                <TouchableOpacity style={styles.arrowIcon} onPress={() => handleClient(usuario.id)}>
-                  <Feather name="arrow-right" size={32} color="black" />
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
       </View>
     </SafeAreaView>
   );
