@@ -12,10 +12,11 @@ export default function Analisar() {
   const navigation = useNavigation();
   const [fazendas, setFazendas] = useState([]);
   const [cliente, setCliente] = useState(false);
-
   const [fazendaSelecionada, setFazendaSelecionada] = useState('');
-  const [talhoes, setTalhoes] = useState([]);
+  const [fazenda, setFazenda] = useState('');
+  const [talhao, setTalhao] = useState('');
   const [talhaoSelecionado, setTalhaoSelecionado] = useState('');
+  const [armadilhaSelecionada, setArmadilhaSelecionada] = useState('');
 
   const [capturedImage, setCapturedImage] = useState(null);
   const [showSendButton, setShowSendButton] = useState(false);
@@ -55,14 +56,13 @@ export default function Analisar() {
           const fazendas = response.data;
 
           const requests = fazendas.map(async (fazenda) => {
-            const fazendaCompletaResponse = await axios.get(`http://10.0.2.2:3000/fazenda/completo/${fazenda.id}`, {
+            const response = await axios.get(`http://10.0.2.2:3000/fazenda/completo/${fazenda.id}`, {
               headers: {
                 'Authorization': `Bearer ${idToken}`,
                 'Content-Type': 'application/json'
               }
             });
-            // console.log('Dados da resposta:', response.data);
-            return fazendaCompletaResponse.data;
+            return response.data;
           });
 
           const fazendasCompleto = await Promise.all(requests);
@@ -78,29 +78,48 @@ export default function Analisar() {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       if (fazendaSelecionada) {
-        const response = await axios.get(`http://10.0.2.2:3000/fazenda/completo/${fazendaSelecionada}`, {
-          headers: {
-            'Authorization': `Bearer ${idToken}`,
-            'Content-Type': 'application/json'
-          }
-        });
-  
-        const fazendaCompleta = response.data;
-        const talhoesDaFazenda = fazendaCompleta.talhaoId || [];
-  
-        setTalhoes(talhoesDaFazenda);
+        try {
+          const response = await axios.get(`http://10.0.2.2:3000/fazenda/completo/${fazendaSelecionada}`, {
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          setFazenda(response.data);
+        } catch (error) {
+          console.log('Erro ao buscar talhões:', error);
+        }
+      }
+    };
+
+    const fetchArmadilhas = async () => {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      if (talhaoSelecionado) {
+        try {
+          const response = await axios.get(`http://10.0.2.2:3000/talhao/completo/${talhaoSelecionado}`, {
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          setTalhao(response.data);
+        } catch (error) {
+          console.log('Erro ao buscar armadilhas:', error);
+        }
       }
     };
 
     fetchFazendas();
     fetchTalhoes();
+    fetchArmadilhas();
 
     const unsubscribe = navigation.addListener('focus', () => {
       fetchFazendas();
     });
 
     return unsubscribe;
-  }, [navigation, fazendaSelecionada]);
+  }, [navigation, fazendaSelecionada, talhaoSelecionado, armadilhaSelecionada]);
 
   const showFileOptions = () => {
     Alert.alert(
@@ -131,10 +150,10 @@ export default function Analisar() {
   };
 
   const handleSendImg = async () => {
-    if (talhaoSelecionado == '') { 
-      Alert.alert( `Alerta`, "Preencha de qual armadilha é essa imagem!",
-        [{ text: "OK", style: "cancel" },] );
-      return; 
+    if (talhaoSelecionado == '') {
+      Alert.alert(`Alerta`, "Preencha de qual armadilha é essa imagem!",
+        [{ text: "OK", style: "cancel" },]);
+      return;
     }
 
     if (capturedImage) {
@@ -174,7 +193,7 @@ export default function Analisar() {
               <Feather style={{ marginLeft: 'auto' }} onPress={handleDiscardImg}
                 name="x" size={44} color="black" />
               <View style={styles.photoSend}>
-                <Feather name="check-square" size={100} color="#2C8C1D" />
+                <Feather name="check-square" size={44} color="#2C8C1D" />
                 <Text style={styles.importText}>Imagem da armadilha importada</Text>
               </View>
             </>
@@ -193,7 +212,6 @@ export default function Analisar() {
               selectedValue={fazendaSelecionada}
               onValueChange={(itemValue, itemIndex) => {
                 setFazendaSelecionada(itemValue);
-                setTalhoes([]);
                 setTalhaoSelecionado('');
               }}
             >
@@ -204,25 +222,54 @@ export default function Analisar() {
             </Picker>
           </View>
 
-          {fazendaSelecionada && talhoes.length > 0 && (
+          {fazendaSelecionada && fazenda && fazenda.talhoes.length > 0 ? (
             <>
-              <Text style={styles.label}>Talhão</Text><View style={styles.input}>
+              <Text style={styles.label}>Talhão</Text>
+              <View style={styles.input}>
                 <Picker
                   selectedValue={talhaoSelecionado}
-                  onValueChange={(itemValue, itemIndex) => setTalhaoSelecionado(itemValue)}
+                  onValueChange={(itemValue, itemIndex) => {
+                    setTalhaoSelecionado(itemValue)
+                    setArmadilhaSelecionada('');
+                  }}
                 >
                   <Picker.Item label="Escolha" value="" />
-                  {talhoes.map((talhao) => (
-                    <Picker.Item key={talhao} label={talhao} value={talhao} />
+                  {fazenda.talhoes.map((talhao) => (
+                    <Picker.Item key={talhao.id} label={talhao.nomeTalhao} value={talhao.id} />
                   ))}
                 </Picker>
               </View>
+              {talhaoSelecionado && talhao && talhao.armadilha.length > 0 ? (
+                <>
+                  <Text style={styles.label}>Armadilha</Text>
+                  <View style={styles.input}>
+                    <Picker
+                      selectedValue={armadilhaSelecionada}
+                      onValueChange={(itemValue, itemIndex) => setArmadilhaSelecionada(itemValue)}
+                    >
+                      <Picker.Item label="Escolha" value="" />
+                      {talhao.armadilha.map((armadilha) => (
+                        <Picker.Item key={armadilha.id} label={armadilha.nomeArmadilha} value={armadilha.id} />
+                      ))}
+                    </Picker>
+                  </View>
+                </>
+              ) : (
+                <>
+                {talhaoSelecionado &&(
+                <Text>Este talhão não possui armadilhas.</Text>
+                )}
+                </>
+              )}
+            </>
+          ) : (
+            <>
+            {fazendaSelecionada &&(
+              <Text>Esta fazenda não possui talhões.</Text>
+            )}
             </>
           )}
 
-          {fazendaSelecionada && talhoes.length === 0 && (
-            <Text>Esta fazenda não possui talhões.</Text>
-          )}
         </View>
 
         {showSendButton && (
@@ -274,7 +321,7 @@ const styles = StyleSheet.create({
   photoSend: {
     justifyContent: 'center',
     alignItems: 'center',
-    height: 300,
+    height: 200,
   },
   uploadBtn: {
     borderWidth: 2.5,
@@ -283,7 +330,7 @@ const styles = StyleSheet.create({
     borderColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
-    height: 300,
+    height: 200,
   },
   importText: {
     fontSize: 16,
