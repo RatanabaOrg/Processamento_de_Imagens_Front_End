@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import firebase from '@react-native-firebase/app';
 import axios from 'axios'; 
+import MapaPoligono from '../Mapa/mapaPoligono';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function CriarTalhao() {
 
@@ -16,13 +18,29 @@ export default function CriarTalhao() {
 
   const handleCadastrar = async () => {
     try {
+      const coordenadas = await AsyncStorage.getItem('poligno');
+      const coordenadasObjeto = JSON.parse(coordenadas);
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { fazendaId } = route.params;
+
+      if (!nome) {
+        Alert.alert('Alerta', 'Preencha o nome da armadilha!', [{ text: 'OK', style: 'cancel' }]);
+        return;
+      }
+      if (!tipoPlantacao) {
+        Alert.alert('Alerta', 'Preencha a plantação', [{ text: 'OK', style: 'cancel' }]);
+        return;
+      }
+      if (!coordenadasObjeto) {
+        Alert.alert('Alerta', 'Marque as coordenadas!', [{ text: 'OK', style: 'cancel' }]);
+        return;
+      }
+
       const response = await axios.post(`http://10.0.2.2:3000/talhao/cadastro`, {
         nomeTalhao: nome,
         tipoPlantacao: tipoPlantacao,
-        coordenadas: coordenadas,
+        coordenadas: coordenadasObjeto,
         fazendaId: fazendaId
     }, {
         headers: {
@@ -50,20 +68,24 @@ export default function CriarTalhao() {
       </View>
 
       <View style={styles.secondHalf}>
+        <ScrollView contentContainerStyle={styles.talhaoContainer}>
         <View style={styles.secondHalfInputs}>
           <Text style={styles.label}>Nome</Text>
           <TextInput style={[styles.input, { paddingLeft: 16 }]}
             placeholder="Nome" onChangeText={(text) => setNome(text)} />
 
-          <Text style={styles.label}>Tipo de plantação</Text>
+          <Text style={styles.label}>Plantação</Text>
           <TextInput style={[styles.input, { paddingLeft: 16 }]}
-            placeholder="Tipo de plantação" onChangeText={(text) => setTipoPlantacao(text)} />
+            placeholder="Plantação" onChangeText={(text) => setTipoPlantacao(text)} />
 
-          <Text style={styles.label}>Coordenadas</Text>
-          <TextInput style={[styles.input, { height: 100, paddingLeft: 16, textAlignVertical: 'top' }]}
+          <Text style={styles.label}>Localização</Text>
+          {/* <TextInput style={[styles.input, { height: 100, paddingLeft: 16, textAlignVertical: 'top' }]}
             placeholder="[[Latitude, Longitude],[Latitude, Longitude]]"
-            multiline={true} onChangeText={(text) => setCoordenadas(text)} />
+            multiline={true} onChangeText={(text) => setCoordenadas(text)} /> */}
+        <MapaPoligono />
+
         </View>
+        </ScrollView>
 
         <View style={styles.secondHalfButton}>
           <TouchableOpacity style={styles.button} onPress={() => handleCadastrar()}>
@@ -106,6 +128,9 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     paddingHorizontal: 30,
     justifyContent: 'flex-start',
+  },
+  talhaoContainer: {
+    height: "100%",
   },
   secondHalfInputs: {
     marginTop: 50,

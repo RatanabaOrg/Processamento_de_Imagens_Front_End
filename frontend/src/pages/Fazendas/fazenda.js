@@ -5,6 +5,7 @@ import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import firebase from '@react-native-firebase/app';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function VerFazenda() {
   const navigation = useNavigation();
@@ -24,15 +25,17 @@ export default function VerFazenda() {
   };
 
   const handleCadastro = (idFazenda) => {
-    navigation.navigate('CriarTalhao', { fazendaId: idFazenda});
+    AsyncStorage.clear();
+    navigation.navigate('CriarTalhao', { fazendaId: idFazenda });
   };
 
   useEffect(() => {
-    
+
   }, []);
 
   useEffect(() => {
     const fetchFazenda = async () => {
+      await AsyncStorage.clear();
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { fazendaId } = route.params;
@@ -45,6 +48,8 @@ export default function VerFazenda() {
           }
         });
         setFazenda(response.data);
+
+        await AsyncStorage.setItem('poligno', JSON.stringify(response.data.coordenadaSede));
       } catch (error) {
         console.log('Erro ao buscar fazenda: ', error);
       }
@@ -55,8 +60,8 @@ export default function VerFazenda() {
       fetchFazenda();
     });
 
-  return unsubscribe;
-}, [navigation, route.params]);
+    return unsubscribe;
+  }, [navigation, route.params]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -78,40 +83,30 @@ export default function VerFazenda() {
 
       <View style={styles.secondHalf}>
         <View style={styles.secondHalfInputs}>
-          <Text style={styles.label}>Nome</Text>
-          <TextInput style={styles.input} placeholder={fazenda ? fazenda.nomeFazenda : ''} editable={false} />
-
-          <Text style={styles.label}>Coordenadas da sede</Text>
-          <TextInput style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
-            placeholder={fazenda ? fazenda.coordenadaSede : ''}
-            multiline={true} editable={false}/>
-
-          <View>
-            <TouchableOpacity activeOpacity={0.7} onPress={() => handleSeeMore()}>
-              <Text style={styles.seeMore}>Ver mais</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity activeOpacity={0.7} onPress={() => handleSeeMore()}>
+            <Text style={styles.seeMore}>Ver/Editar</Text>
+          </TouchableOpacity>
         </View>
-        
+
         <Text style={styles.talhoes}>Talhões</Text>
 
         <ScrollView>
-        {fazenda && fazenda.talhoes && fazenda.talhoes.length > 0 ? (
-          fazenda.talhoes.map(talhao => (
-            <TouchableOpacity key={talhao.id} style={styles.talhao} onPress={() => handleTalhao(talhao.id)}>
-              <View style={styles.talhaoContent}>
-                <View style={styles.talhaoCircle} />
+          {fazenda && fazenda.talhoes && fazenda.talhoes.length > 0 ? (
+            fazenda.talhoes.map(talhao => (
+              <TouchableOpacity key={talhao.id} style={styles.talhao} onPress={() => handleTalhao(talhao.id)}>
+                <View style={styles.talhaoContent}>
+                  <View style={styles.talhaoCircle} />
 
-                <View>
-                  <Text>{talhao.nomeTalhao}</Text>
+                  <View>
+                    <Text>{talhao.nomeTalhao}</Text>
+                  </View>
+
+                  <TouchableOpacity style={styles.arrowIcon} onPress={() => handleTalhao(talhao.id)}>
+                    <Feather name="arrow-right" size={32} color="black" />
+                  </TouchableOpacity>
                 </View>
-
-                <TouchableOpacity style={styles.arrowIcon} onPress={() => handleTalhao(talhao.id)}>
-                  <Feather name="arrow-right" size={32} color="black" />
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          ))): <Text>Não há talhões nesta fazenda</Text>
+              </TouchableOpacity>
+            ))) : <Text>Não há talhões nesta fazenda</Text>
           }
         </ScrollView>
 

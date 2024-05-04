@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import { Picker } from '@react-native-picker/picker';
 import firebase from '@react-native-firebase/app';
 import axios from 'axios';
+import MapaPoligono from '../Mapa/mapaPoligono';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function CriarFazenda() {
 
   const navigation = useNavigation();
   const [nome, setNome] = useState('');
   const [agricultor, setAgricultor] = useState('');
-  const [coordenadas, setCoordenadas] = useState('');
-  const [hasCEP, setHasCEP] = useState(false);
   const [agricultores, setAgricultores] = useState([]);
+  const [coordenadas, setCoordenadas] = useState('');
   const [cliente, setCliente] = useState(true);
 
   useEffect(() => {
@@ -21,9 +22,9 @@ export default function CriarFazenda() {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const id = await currentUser.uid;
-      
+
       setAgricultor(id);
-  
+
       try {
         const response = await axios.get(`http://10.0.2.2:3000/usuario/${id}`, {
           headers: {
@@ -31,9 +32,9 @@ export default function CriarFazenda() {
             'Content-Type': 'application/json'
           }
         });
-  
+
         setCliente(response.data.cliente);
-  
+
         if (response.data.cliente === false) {
           const responseUsuarios = await axios.get('http://10.0.2.2:3000/usuario', {
             headers: {
@@ -41,7 +42,7 @@ export default function CriarFazenda() {
               'Content-Type': 'application/json'
             }
           });
-  
+
           const afterAgricultores = responseUsuarios.data.map(item => {
             if (id !== item.id) {
               return {
@@ -49,59 +50,69 @@ export default function CriarFazenda() {
                 nome: item.nome
               };
             }
-            return null; 
+            return null;
           }).filter(item => item !== null);
-  
+
           setAgricultores(afterAgricultores);
         }
       } catch (error) {
         console.log('Erro ao buscar usuários:', error);
       }
     };
-  
+
     fetchUsuarios();
   }, []);
 
-  const handleNextPage = () => {
-    navigation.navigate('CriarFazendaCep', {
-      nome: nome,
-      cordenadasSede: coordenadas,
-      usuarioId: agricultor
-    });
-  };
-
   const handleSubmit = async () => {
-    console.log(
-     { nomeFazenda: nome,
-      agricultor: agricultor,
-      coordenadaSede: coordenadas,
-      usuarioId: agricultor,
-      endereco: {}}
-    );
     try {
+      const coordenadas = await AsyncStorage.getItem('poligno');
+      
+      if (!coordenadas) {
+        Alert.alert('Alerta', 'Preencha a localização!', [{ text: 'OK', style: 'cancel' }]);
+        return;
+      }
+      if (!nome) {
+        Alert.alert('Alerta', 'Preencha o nome da fazenda!', [{ text: 'OK', style: 'cancel' }]);
+        return;
+      }
+      if (!agricultor) {
+        Alert.alert('Alerta', 'Escolha um agricultor!', [{ text: 'OK', style: 'cancel' }]);
+        return;
+      }
+  
+      const coordenadasObjeto = JSON.parse(coordenadas);
+  
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
-      const response = await axios.post(`http://10.0.2.2:3000/fazenda/cadastro`, {
-        nomeFazenda: nome,
-        agricultor: agricultor,
-        coordenadaSede: coordenadas,
-        usuarioId: agricultor,
-        endereco: {}
-      }, {
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json'
+  
+      const response = await axios.post(
+        'http://10.0.2.2:3000/fazenda/cadastro',
+        {
+          nomeFazenda: nome,
+          coordenadaSede: coordenadasObjeto,
+          usuarioId: agricultor
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
         }
-      });
+      );
+  
+      await AsyncStorage.clear();
+  
       navigation.navigate('Main', { screen: 'Clientes' });
     } catch (error) {
+      Alert.alert('Alerta', 'Erro ao cadastrar fazenda', [{ text: 'OK', style: 'cancel' }]);
       console.log('Erro ao cadastrar fazenda:', error);
     }
-  }
+  };
 
 
   return (
     <SafeAreaView style={styles.container}>
+
       <View style={styles.firstHalf}>
         <View>
           <View style={styles.firstHalfContent}>
@@ -114,6 +125,7 @@ export default function CriarFazenda() {
       </View>
 
       <View style={styles.secondHalf}>
+        <ScrollView contentContainerStyle={styles.fazendaContainer}>
         <View style={styles.secondHalfInputs}>
           <Text style={styles.label}>Nome</Text>
           <TextInput style={[styles.input, { paddingLeft: 16 }]}
@@ -136,33 +148,19 @@ export default function CriarFazenda() {
             </>
           ) : null}
 
-          <Text style={styles.label}>Coordenadas da sede</Text>
-          <TextInput style={[styles.input, { height: 100, paddingLeft: 16, textAlignVertical: 'top' }]}
+          <Text style={styles.label}>Localização</Text>
+          {/* <TextInput style={[styles.input, { height: 100, paddingLeft: 16, textAlignVertical: 'top' }]}
             placeholder="[[Latitude, Longitude], [Latitude, Longitude]]"
-            multiline={true} onChangeText={(text) => setCoordenadas(text)} />
+            multiline={true} onChangeText={(text) => setCoordenadas(text)} /> */}
+        <MapaPoligono />
 
-          <Text style={styles.label}>A fazenda possui CEP?</Text>
-          <View style={styles.input}>
-            <Picker
-              selectedValue={hasCEP}
-              onValueChange={(itemValue, itemIndex) => setHasCEP(itemValue)}
-            >
-              <Picker.Item label="Sim" value={true} />
-              <Picker.Item label="Não" value={false} />
-            </Picker>
-          </View>
         </View>
+        </ScrollView>
 
         <View style={styles.secondHalfButton}>
-          {hasCEP ? (
-            <TouchableOpacity style={styles.button} onPress={handleNextPage}>
-              <Text style={styles.buttonText}>Próximo</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-              <Text style={styles.buttonText}>Salvar alterações</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+            <Text style={styles.buttonText}>Enviar cadastro</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
@@ -200,6 +198,9 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     paddingHorizontal: 30,
     justifyContent: 'flex-start',
+  },
+  fazendaContainer: {
+    height: "100%",
   },
   secondHalfInputs: {
     marginTop: 50,

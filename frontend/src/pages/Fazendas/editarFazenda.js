@@ -5,6 +5,8 @@ import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import firebase from '@react-native-firebase/app';
 import axios from 'axios';
+import MapaPoligonoEditar from '../Mapa/mapaPoligonoEditar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function EditarFazenda() {
   const navigation = useNavigation();
@@ -12,16 +14,7 @@ export default function EditarFazenda() {
   const [fazenda, setFazenda] = useState(null);
   const [nomeFazenda, setNomeFazenda] = useState(' ');
   const [coordenadaSede, setCoordenadaSede] = useState(' ');
-  const [cep, setCep] = useState(' ');
-  const [logradouro, setLogradouro] = useState(' ');
-  const [numero, setNumero] = useState(' ');
-  const [bairro, setBairro] = useState(' ');
-  const [cidade, setCidade] = useState(' ');
-  const [uf, setUf] = useState(' ');
-  const [complemento, setComplemento] = useState(' ');
   const [usuarioId, setUsuarioId] = useState(' ');
-  const [enderecoId, setEnderecoId] = useState(' ');
-  const [endereco, setEndereco] = useState(false);
 
   const handleDeletar = () => {
     Alert.alert(
@@ -60,21 +53,18 @@ export default function EditarFazenda() {
 
   const handleSalvar = async () => {
     try {
+      
+      const coordenadas = await AsyncStorage.getItem('poligno');
+      const coordenadasObjeto = JSON.parse(coordenadas);
+
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
+      const usuarioId = currentUser.uid;
       const { fazendaId } = route.params;
       const response = await axios.put(`http://10.0.2.2:3000/fazenda/${fazendaId}`, {
         nomeFazenda: nomeFazenda,
-        coordenadaSede: coordenadaSede,
-        cep: cep,
-        logradouro: logradouro,
-        numero: numero,
-        cidade: cidade,
-        bairro: bairro,
-        uf: uf,
-        complemento: complemento,
-        usuarioId: usuarioId,
-        enderecoId: enderecoId
+        coordenadaSede: coordenadasObjeto,
+        usuarioId: usuarioId
       }, {
         headers: {
           'Authorization': `Bearer ${idToken}`,
@@ -99,23 +89,12 @@ export default function EditarFazenda() {
             'Content-Type': 'application/json'
           }
         });
-        
-        if (response.data.endereco.cep != undefined) {
-          setEndereco(true)
-          setCep(response.data.endereco.cep);
-          setLogradouro(response.data.endereco.logradouro);
-          setNumero(response.data.endereco.numero)
-          setBairro(response.data.endereco.bairro);
-          setCidade(response.data.endereco.cidade)
-          setUf(response.data.endereco.uf)
-          setComplemento(response.data.endereco.complemento);
-        }
+
+        console.log(response.data);
 
         setFazenda(response.data);
         setNomeFazenda(response.data.nomeFazenda);
-        setCoordenadaSede(response.data.coordenadaSede);
         setUsuarioId(response.data.usuarioId);
-        setEnderecoId(response.data.enderecoId);
       } catch (error) {
         console.log('Erro ao buscar fazenda:', error);
       }
@@ -145,31 +124,7 @@ export default function EditarFazenda() {
             <Text style={styles.label}>Nome</Text>
             <TextInput style={styles.input} placeholder={fazenda ? fazenda.nomeFazenda : ''} value={nomeFazenda} onChangeText={(text) => setNomeFazenda(text)} />
 
-            <Text style={styles.label}>Coordenadas da sede</Text>
-            <TextInput style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
-              placeholder={fazenda ? fazenda.coordenadaSede : ''}
-              multiline={true} value={coordenadaSede} onChangeText={(text) => setCoordenadas(text)} />
-
-            <Text style={styles.label}>CEP</Text>
-            <TextInput style={styles.input} placeholder={fazenda ? fazenda.endereco.cep : ''} value={cep} onChangeText={(text) => setCep(text)} onBlur={() => fetchAddressByCEP(cep)} />
-            <Text style={styles.label}>Logradouro</Text>
-            <TextInput style={styles.input} placeholder={fazenda ? fazenda.endereco.logradouro : ''} value={logradouro} onChangeText={(text) => setLogradouro(text)} />
-            <Text style={styles.label}>Número</Text>
-            <TextInput style={styles.input} placeholder={fazenda ? fazenda.endereco.numero : ''} value={numero} onChangeText={(text) => setNumero(text)} />
-            <Text style={styles.label}>Bairro</Text>
-            <TextInput style={styles.input} placeholder={fazenda ? fazenda.endereco.bairro : ''} value={bairro} onChangeText={(text) => setBairro(text)} />
-            <View style={styles.cidadeEUF}>
-              <View>
-                <Text style={styles.label}>Cidade</Text>
-                <TextInput style={styles.inputCidade} placeholder={fazenda ? fazenda.endereco.cidade : ''} value={cidade} onChangeText={(text) => setCidade(text)} />
-              </View>
-              <View>
-                <Text style={styles.label}>UF</Text>
-                <TextInput style={styles.inputUF} placeholder={fazenda ? fazenda.endereco.uf : ''} value={uf} onChangeText={(text) => setUf(text)} />
-              </View>
-            </View>
-            <Text style={styles.label}>Complemento</Text>
-            <TextInput style={styles.input} placeholder={fazenda ? fazenda.endereco.complemento : ''} value={complemento} onChangeText={(text) => setComplemento(text)} />
+            {coordenadaSede &&(<MapaPoligonoEditar />)}
           </View>
         </ScrollView>
 
@@ -217,6 +172,9 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     paddingHorizontal: 30,
     justifyContent: 'flex-start',
+  },
+  fazendaContainer: {
+    height: "100%",
   },
   secondHalfInputs: {
     marginTop: 30,

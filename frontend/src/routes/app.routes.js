@@ -15,9 +15,13 @@ import VerConta from '../pages/Aprovar/verConta';
 
 import Fazendas from '../pages/Fazendas';
 import CriarFazenda from '../pages/Fazendas/criarFazenda';
-import CriarFazendaCep from '../pages/Fazendas/criarFazendaCep';
 import VerFazenda from '../pages/Fazendas/fazenda';
 import EditarFazenda from '../pages/Fazendas/editarFazenda';
+
+import MapaPoligono from '../pages/Mapa/mapaPoligono';
+import MapaArmadilha from '../pages/Mapa/mapaArmadilha';
+import MapaPoligonoEditar from '../pages/Mapa/mapaPoligonoEditar';
+import MapaArmadilhaEditar from '../pages/Mapa/mapaArmadilhaEditar';
 
 import VerTalhao from '../pages/Talhoes/talhao';
 import EditarTalhao from '../pages/Talhoes/editarTalhao';
@@ -124,9 +128,13 @@ export default function AppRoutes() {
       <Stack.Screen name="VerConta" component={VerConta} options={{ headerShown: false }} />
 
       <Stack.Screen name="CriarFazenda" component={CriarFazenda} options={{ headerShown: false }} />
-      <Stack.Screen name="CriarFazendaCep" component={CriarFazendaCep} options={{ headerShown: false }} />
       <Stack.Screen name="VerFazenda" component={VerFazenda} options={{ headerShown: false }} />
       <Stack.Screen name="EditarFazenda" component={EditarFazenda} options={{ headerShown: false }} />
+
+      <Stack.Screen name="MapaPoligono" component={MapaPoligono} options={{ headerShown: false }} />
+      <Stack.Screen name="MapaArmadilha" component={MapaArmadilha} options={{ headerShown: false }} />
+      <Stack.Screen name="MapaPoligonoEditar" component={MapaPoligonoEditar} options={{ headerShown: false }} />
+      <Stack.Screen name="MapaArmadilhaEditar" component={MapaArmadilhaEditar} options={{ headerShown: false }} />
 
       <Stack.Screen name="VerTalhao" component={VerTalhao} options={{ headerShown: false }} />
       <Stack.Screen name="EditarTalhao" component={EditarTalhao} options={{ headerShown: false }} />
