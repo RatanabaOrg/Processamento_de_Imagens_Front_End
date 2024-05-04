@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import firebase from '@react-native-firebase/app';
 import axios from 'axios';
+import MapaPoligonoEditar from '../Mapa/mapaPoligonoEditar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function EditarTalhao() {
   const navigation = useNavigation();
@@ -24,26 +26,26 @@ export default function EditarTalhao() {
       "Você realmente deseja deletar esse talhão? \n \nEssa ação é irreversível e irá apagar todos os dados relacionados ao talhão!",
       [{
         text: "Confirmar",
-        onPress: () => {  
-        const deleteTalhao = async () => {
-          try {
-            const currentUser = firebase.auth().currentUser;
-            const idToken = await currentUser.getIdToken();
-            const { talhaoId } = route.params;
-            const response = await axios.delete(`http://10.0.2.2:3000/talhao/${talhaoId}`, {
-              headers: {
-                'Authorization': `Bearer ${idToken}`,
-                'Content-Type': 'application/json'
-              }
-            });
-             navigation.goBack();  
-             navigation.goBack();
-          } catch (error) {
-            console.log("Erro ao excluir talhao: ", error)
-          }
-        };
-        deleteTalhao()
-      }
+        onPress: () => {
+          const deleteTalhao = async () => {
+            try {
+              const currentUser = firebase.auth().currentUser;
+              const idToken = await currentUser.getIdToken();
+              const { talhaoId } = route.params;
+              const response = await axios.delete(`http://10.0.2.2:3000/talhao/${talhaoId}`, {
+                headers: {
+                  'Authorization': `Bearer ${idToken}`,
+                  'Content-Type': 'application/json'
+                }
+              });
+              navigation.goBack();
+              navigation.goBack();
+            } catch (error) {
+              console.log("Erro ao excluir talhao: ", error)
+            }
+          };
+          deleteTalhao()
+        }
       },
       {
         text: "Cancelar",
@@ -54,13 +56,15 @@ export default function EditarTalhao() {
 
   const handleSalvar = async () => {
     try {
+      const coordenadas = await AsyncStorage.getItem('poligno');
+      const coordenadasObjeto = JSON.parse(coordenadas);
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { talhaoId } = route.params;
       const response = await axios.put(`http://10.0.2.2:3000/talhao/${talhaoId}`, {
         nomeTalhao: nome,
-        tipoPlantacao: tipoPlantacao, 
-        coordenadas: coordenadas 
+        tipoPlantacao: tipoPlantacao,
+        coordenadas: coordenadasObjeto
       }, {
         headers: {
           'Authorization': `Bearer ${idToken}`,
@@ -113,12 +117,13 @@ export default function EditarTalhao() {
       </View>
 
       <View style={styles.secondHalf}>
+        <ScrollView contentContainerStyle={styles.talhaoContainer}>
         <View style={styles.secondHalfInputs}>
           <Text style={styles.label}>Nome</Text>
-          <TextInput style={styles.input} 
-          placeholder={talhao ? talhao.nomeTalhao : ''} 
-          value={nome} 
-          onChangeText={(text) => setNome(text)} />
+          <TextInput style={styles.input}
+            placeholder={talhao ? talhao.nomeTalhao : ''}
+            value={nome}
+            onChangeText={(text) => setNome(text)} />
 
           <Text style={styles.label}>Tipo de plantação</Text>
           <TextInput style={styles.input}
@@ -126,12 +131,9 @@ export default function EditarTalhao() {
             value={tipoPlantacao}
             onChangeText={(text) => setTipoPlantacao(text)} />
 
-          <Text style={styles.label}>Coordenadas</Text>
-          <TextInput style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
-            placeholder={talhao ? talhao.coordenadas : ''}
-            value={coordenadas}
-            multiline={true} onChangeText={(text) => setCoordenadas(text)} />
+          {coordenadas && (<MapaPoligonoEditar />)}
         </View>
+        </ScrollView>
 
         <View style={styles.secondHalfButtons}>
           <TouchableOpacity style={styles.buttonDeletar} onPress={() => handleDeletar()}>
@@ -176,6 +178,9 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     paddingHorizontal: 30,
     justifyContent: 'flex-start',
+  },
+  talhaoContainer: {
+    height: "100%",
   },
   secondHalfInputs: {
     marginTop: 30,
