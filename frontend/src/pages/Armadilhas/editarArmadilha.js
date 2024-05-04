@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import firebase from '@react-native-firebase/app';
 import axios from 'axios';
+import MapaArmadilhaEditar from '../Mapa/mapaArmadilhaEditar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function EditarArmadilha() {
   const navigation = useNavigation();
   const route = useRoute();
   const [armadilha, setArmadilha] = useState(null);
   const [nome, setNome] = useState(null);
-  const [latitude, setLatitude] = useState(null);
-  const [longitude, setLongitude] = useState(null);
 
   useEffect(() => {
     const fetchArmadilha = async () => {
@@ -27,20 +27,14 @@ export default function EditarArmadilha() {
           }
         });
         setArmadilha(response.data);
-        setNome(response.data.nomeArmadilha);
-        setLatitude(response.data.latitude);
-        setLongitude(response.data.longitude);
+        setNome(response.data.nome)
       } catch (error) {
-        console.error('Erro ao buscar usuário:', error);
+        console.log('Erro ao buscar usuário:', error);
       }
     };
 
     fetchArmadilha();
   }, [route.params]);
-
-  const handleTalhao = (armadilhaId) => {
-    navigation.navigate('VerTalhao', { armadilhaId: armadilhaId });
-  };
 
   const handleDeletar = () => {
     Alert.alert(
@@ -62,7 +56,7 @@ export default function EditarArmadilha() {
            
             navigation.goBack();
           } catch (error) {
-            console.error('Erro ao deletar usuario:', error);
+            console.log('Erro ao deletar usuario:', error);
           }
         };
         deleteArmadilha() }
@@ -78,11 +72,12 @@ export default function EditarArmadilha() {
       try {
         const currentUser = firebase.auth().currentUser;
         const idToken = await currentUser.getIdToken();
+        const coordenadas = await AsyncStorage.getItem('poligno');
+        const coordenadasObjeto = JSON.parse(coordenadas);
         const { armadilhaId } = route.params;
         const response = await axios.put(`http://10.0.2.2:3000/armadilha/${armadilhaId}`, {
           nomeArmadilha: nome,
-          latitude: latitude, 
-          longitude: longitude, 
+          coordenada: coordenadasObjeto
         }, {
           headers: {
             'Authorization': `Bearer ${idToken}`,
@@ -91,7 +86,7 @@ export default function EditarArmadilha() {
         });
         navigation.goBack();
       } catch (error) {
-        console.error('Erro ao salvar alterações:', error);
+        console.log('Erro ao salvar alterações:', error);
       }
     };
 
@@ -111,19 +106,18 @@ export default function EditarArmadilha() {
       </View>
 
       <View style={styles.secondHalf}>
+        <ScrollView contentContainerStyle={styles.armadilhaContainer}>
         <View style={styles.secondHalfInputs}>
           <Text style={styles.label}>Nome</Text>
           <TextInput style={styles.input} placeholder={armadilha ? armadilha.nomeArmadilha : ''} value={nome} onChangeText={(text) => setNome(text)} />
 
-          <Text style={styles.label}>Latitude</Text>
-          <TextInput style={styles.input}
-            placeholder={armadilha ? armadilha.latitude : ''} value={latitude} onChangeText={(text) => setLatitude(text)} />
 
-          <Text style={styles.label}>Longitude</Text>
-          <TextInput style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
-            placeholder={armadilha ? armadilha.longitude : ''} value={longitude}
-            multiline={true} onChangeText={(text) => setLongitude(text)} />
+          <Text style={styles.label}>Localização</Text>
+
+          <MapaArmadilhaEditar />
+          
         </View>
+        </ScrollView>
 
         <View style={styles.secondHalfButtons}>
           <TouchableOpacity style={styles.buttonDeletar} onPress={() => handleDeletar()}>
@@ -169,6 +163,9 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     paddingHorizontal: 30,
     justifyContent: 'flex-start',
+  },
+  armadilhaContainer: {
+    height: "100%",
   },
   secondHalfInputs: {
     marginTop: 30,

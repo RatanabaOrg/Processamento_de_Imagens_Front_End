@@ -5,6 +5,7 @@ import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import firebase from '@react-native-firebase/app';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function VerTalhao() {
   const navigation = useNavigation();
@@ -21,15 +22,35 @@ export default function VerTalhao() {
   };
 
   const handleArmadilha = (armadilhaId) => {
+    const fetchArmadilha = async () => {
+      AsyncStorage.clear();
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      try {
+        const response = await axios.get(`http://10.0.2.2:3000/armadilha/${armadilhaId}`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        await AsyncStorage.setItem('poligno', JSON.stringify(response.data.coordenada));
+      } catch (error) {
+        console.log('Erro ao buscar armadilha:', error);
+      }
+    };
+
     navigation.navigate('EditarArmadilha', { armadilhaId: armadilhaId });
+    fetchArmadilha();
   };
 
   const handleCadastro = () => {
-    navigation.navigate('CriarArmadilha', { talhaoId: idtalhao});
+    AsyncStorage.clear();
+    navigation.navigate('CriarArmadilha', { talhaoId: idtalhao });
   };
 
   useEffect(() => {
     const fetchTalhao = async () => {
+      await AsyncStorage.clear();
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { talhaoId } = route.params;
@@ -42,8 +63,9 @@ export default function VerTalhao() {
           }
         });
         setTalhao(response.data);
+        await AsyncStorage.setItem('poligno', JSON.stringify(response.data.coordenadas));
       } catch (error) {
-        console.log('buscar talhao');
+        console.log('Erro ao buscar talhao: ', error);
       }
     };
 
@@ -53,7 +75,7 @@ export default function VerTalhao() {
     });
 
     return unsubscribe;
-}, [navigation, route.params]);
+  }, [navigation, route.params]);
 
 
   return (
@@ -73,39 +95,37 @@ export default function VerTalhao() {
 
       <View style={styles.secondHalf}>
         <View style={styles.secondHalfInputs}>
-          <Text style={styles.label}>Nome</Text>
-          <TextInput style={styles.input} editable={false} placeholder={talhao ? talhao.nomeTalhao : ''}/>
 
-          <Text style={styles.label}>Tipo de plantação</Text>
+          <Text style={styles.label}>Plantação</Text>
           <TextInput style={styles.input}
-            placeholder={talhao ? talhao.tipoPlantacao: ''} editable={false}/>
+            placeholder={talhao ? talhao.tipoPlantacao : ''} editable={false} />
 
           <View>
             <TouchableOpacity activeOpacity={0.7} onPress={() => handleSeeMore(talhao.id)}>
-              <Text style={styles.seeMore}>Ver mais</Text>
+              <Text style={styles.seeMore}>Ver mais...</Text>
             </TouchableOpacity>
           </View>
         </View>
-        
+
         <Text style={styles.armadilhas}>Armadilhas</Text>
 
-        <ScrollView contentContainerStyle={styles.armadilhaContainer}>
-        {talhao && talhao.armadilha && talhao.armadilha.length > 0 ? (
-          talhao.armadilha.map(armadilha => (
-            <TouchableOpacity key={armadilha.id} style={styles.armadilha} onPress={() => handleArmadilha(armadilha.id)}>
-              <View style={styles.armadilhaContent}>
-                <View style={styles.armadilhaFoto} />
+        <ScrollView>
+          {talhao && talhao.armadilha && talhao.armadilha.length > 0 ? (
+            talhao.armadilha.map(armadilha => (
+              <TouchableOpacity key={armadilha.id} style={styles.armadilha} onPress={() => handleArmadilha(armadilha.id)}>
+                <View style={styles.armadilhaContent}>
+                  <View style={styles.armadilhaCircle} />
 
-                <View>
-                  <Text style={styles.armadilhaNome}>{armadilha.nomeArmadilha}</Text>
+                  <View>
+                    <Text>{armadilha.nomeArmadilha}</Text>
+                  </View>
+
+                  <TouchableOpacity style={styles.arrowIcon} onPress={() => handleArmadilha(armadilha.id)}>
+                    <Feather name="arrow-right" size={32} color="black" />
+                  </TouchableOpacity>
                 </View>
-
-                <TouchableOpacity style={styles.arrowIcon} onPress={() => handleArmadilha(armadilha.id)}>
-                  <Feather name="arrow-right" size={24} color="black" />
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          ))): <Text> Não há armadilhas neste talhão.</Text>
+              </TouchableOpacity>
+            ))) : <Text> Não há armadilhas neste talhão.</Text>
           }
         </ScrollView>
 
@@ -187,37 +207,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
     backgroundColor: '#fff',
-    padding: 10,
-    borderRadius: 10,
+    padding: 12,
+    borderRadius: 14,
   },
   armadilhaContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  armadilhaFoto: {
-    width: 48,
-    height: 48,
+  armadilhaCircle: {
+    width: 50,
+    height: 50,
     borderRadius: 30,
-    backgroundColor: '#8194D8',
+    backgroundColor: '#FCFF51',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    marginRight: 12,
   },
   arrowIcon: {
     marginLeft: 'auto',
   },
+
   button: {
     backgroundColor: '#FF8C00',
     borderRadius: 10,
     padding: 12,
+    alignItems: 'center',
     marginTop: 18,
     marginBottom: 18,
   },
   buttonText: {
     color: 'white',
     fontSize: 16,
-    textAlign: 'center',
   },
 
 });

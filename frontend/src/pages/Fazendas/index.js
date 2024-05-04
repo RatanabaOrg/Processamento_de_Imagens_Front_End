@@ -49,8 +49,23 @@ export default function Fazendas() {
               'Content-Type': 'application/json'
             }
           });
-          setFazendas(response.data);
-          setFilteredFazendas(response.data);
+
+          const fazendas = response.data;
+
+          const requests = fazendas.map(async (fazenda) => {
+            const fazendaCompletaResponse = await axios.get(`http://10.0.2.2:3000/fazenda/completo/${fazenda.id}`, {
+              headers: {
+                'Authorization': `Bearer ${idToken}`,
+                'Content-Type': 'application/json'
+              }
+            });
+            return fazendaCompletaResponse.data;
+          });
+
+          const fazendasCompleto = await Promise.all(requests);
+
+          setFazendas(fazendasCompleto);
+          setFilteredFazendas(fazendasCompleto);
         }
       } catch (error) {
         console.log('Erro ao buscar fazendas:', error);
@@ -103,23 +118,23 @@ export default function Fazendas() {
           />
         </View>
 
-        <ScrollView contentContainerStyle={styles.fazendaContainer}>
+        <ScrollView>
           {filteredFazendas.map(fazenda => (
             <TouchableOpacity key={fazenda.id} style={styles.fazenda} onPress={() => handleFazenda(fazenda.id)}>
               <View style={styles.fazendaContent}>
-                <View style={styles.fazendaFoto}>
+                <View style={styles.fazendaCircle}>
                   <Text style={styles.fazendaInitials}>{getInitials(fazenda.nomeFazenda)}</Text>
                 </View>
 
                 <View>
                   <Text style={styles.fazendaNome}>{fazenda.nomeFazenda}</Text>
-                  {/* {!cliente ?
-                    <Text style={styles.fazendaNomeAgri}>{fazenda.nomeFazenda}</Text>
-                    : null} */}
+                  {!cliente ?
+                    <Text style={styles.fazendaNomeAgri}>{fazenda.nomeUsuario}</Text>
+                    : null}
                 </View>
 
                 <TouchableOpacity style={styles.arrowIcon} onPress={() => handleFazenda(fazenda.id)}>
-                  <Feather name="arrow-right" size={24} color="black" style={styles.searchIcon} />
+                  <Feather name="arrow-right" size={32} color="black" />
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -169,6 +184,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: "#fff"
   },
+
   secondHalf: {
     flex: 8.3,
     backgroundColor: '#E9EEEB',
@@ -197,49 +213,51 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#FF8C00',
   },
+
   fazenda: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
     backgroundColor: '#fff',
-    padding: 8,
-    borderRadius: 10,
+    padding: 12,
+    borderRadius: 14,
   },
   fazendaContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  fazendaNomeAgri: {
-    color: '#BAB4B4'
-  },
-  fazendaFoto: {
-    width: 48,
-    height: 48,
+  fazendaCircle: {
+    width: 50,
+    height: 50,
     borderRadius: 30,
     backgroundColor: '#60CC64',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    marginRight: 12,
   },
   fazendaInitials: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
   },
+  fazendaNomeAgri: {
+    color: '#BAB4B4'
+  },
   arrowIcon: {
     marginLeft: 'auto',
   },
+
   button: {
     backgroundColor: '#FF8C00',
     borderRadius: 10,
     padding: 12,
+    alignItems: 'center',
     marginTop: 18,
     marginBottom: 18,
   },
   buttonText: {
     color: 'white',
     fontSize: 16,
-    textAlign: 'center',
   },
 });

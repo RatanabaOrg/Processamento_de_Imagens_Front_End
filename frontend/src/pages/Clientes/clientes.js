@@ -7,7 +7,6 @@ import firebase from '@react-native-firebase/app';
 import axios from 'axios';
 
 export default function Clientes() {
-
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredUsuarios, setFilteredUsuarios] = useState([]);
@@ -17,7 +16,6 @@ export default function Clientes() {
     const fetchUsuarios = async () => {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
-      console.log(idToken)
       try {
         const response = await axios.get('http://10.0.2.2:3000/usuario', {
           headers: {
@@ -25,8 +23,11 @@ export default function Clientes() {
             'Content-Type': 'application/json'
           }
         });
+
+        const approvedUsuarios = response.data.filter(usuario => usuario.aprovado && usuario.cliente);
+      
         setUsuarios(response.data);
-        setFilteredUsuarios(response.data);
+        setFilteredUsuarios(approvedUsuarios);
       } catch (error) {
         console.log('Erro ao buscar usuários:', error);
       }
@@ -49,13 +50,22 @@ export default function Clientes() {
   };
 
   const handleSearch = () => {
-    if (searchQuery.trim() === '') {
-      setFilteredUsuarios(usuarios);
+    const trimmedQuery = searchQuery.trim().toLowerCase();
+    if (trimmedQuery === '') {
+      const filtered = usuarios.filter(usuario => usuario.aprovado && usuario.cliente && usuario.id !== firebase.auth().currentUser.uid);
+      setFilteredUsuarios(filtered);
     } else {
-      const filtered = usuarios.filter(usuario => usuario.nome.toLowerCase().includes(searchQuery.toLowerCase()));
+      const filtered = usuarios.filter(
+        usuario =>
+          usuario.nome.toLowerCase().includes(trimmedQuery) &&
+          usuario.aprovado &&
+          usuario.cliente &&
+          usuario.id !== firebase.auth().currentUser.uid
+      );
       setFilteredUsuarios(filtered);
     }
   };
+    
 
   return (
     <SafeAreaView style={styles.container}>
@@ -63,8 +73,8 @@ export default function Clientes() {
         <View style={styles.firstHalfContent}>
           <Text style={styles.title}>Últimos clientes</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
-            {usuarios.map((usuario, index) => (
-              <TouchableOpacity key={index} style={styles.clienteCircle}>
+            {filteredUsuarios.map((usuario, index) => (
+              <TouchableOpacity key={index} style={styles.clienteCircle} onPress={() => handleClient(usuario.id)} >
                 {usuario.foto ? (
                   <Image source={{ uri: usuario.foto }} style={styles.clienteFoto} />
                 ) : (
@@ -88,7 +98,8 @@ export default function Clientes() {
             placeholderTextColor="#FF8C00"
           />
         </View>
-        <ScrollView contentContainerStyle={styles.clienteContainer}>
+
+        <ScrollView>
           {filteredUsuarios.map(usuario => (
             <TouchableOpacity key={usuario.id} style={styles.cliente} onPress={() => handleClient(usuario.id)}>
               <View style={styles.clienteContent}>
@@ -99,9 +110,9 @@ export default function Clientes() {
                     <Feather name="user" size={24} color="white" />
                   )}
                 </View>
-                <Text style={styles.clienteNome}>{usuario.nome}</Text>
+                <Text>{usuario.nome}</Text>
                 <TouchableOpacity style={styles.arrowIcon} onPress={() => handleClient(usuario.id)}>
-                  <Feather name="arrow-right" size={24} color="black" style={styles.searchIcon} />
+                  <Feather name="arrow-right" size={32} color="black" />
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -155,17 +166,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   clienteCircle: {
-    width: 60,
-    height: 60,
+    width: 50,
+    height: 50,
     borderRadius: 30,
     backgroundColor: '#ccc',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    marginRight: 12,
   },
   clienteFoto: {
-    width: 60,
-    height: 60,
+    width: 50,
+    height: 50,
     borderRadius: 30,
   },
   clienteInitials: {
@@ -173,6 +184,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+
   secondHalf: {
     flex: 7.5,
     backgroundColor: '#E9EEEB',
@@ -201,31 +213,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#FF8C00',
   },
+
   cliente: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
     backgroundColor: '#fff',
-    padding: 8,
-    borderRadius: 10,
+    padding: 12,
+    borderRadius: 14,
   },
   clienteContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  clienteNome: {
-    marginLeft: 10,
-  },
-  cliFoto: {
-    width: 48,
-    height: 48,
-    borderRadius: 30,
-    backgroundColor: '#ccc'
-  },
   arrowIcon: {
     marginLeft: 'auto',
   },
+
   button: {
     backgroundColor: '#FF8C00',
     borderRadius: 10,

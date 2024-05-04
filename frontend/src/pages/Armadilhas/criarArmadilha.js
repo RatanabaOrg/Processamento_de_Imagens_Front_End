@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import firebase from '@react-native-firebase/app';
 import axios from 'axios';
+import MapaArmadilha from '../Mapa/mapaArmadilha';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function CriarArmadilha() {
 
@@ -16,13 +18,24 @@ export default function CriarArmadilha() {
 
   const handleCadastrar = async () => {
     try {
+      const coordenadas = await AsyncStorage.getItem('poligno');
+      const coordenadasObjeto = JSON.parse(coordenadas);
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { talhaoId } = route.params;
+
+      if (!nome) {
+        Alert.alert('Alerta', 'Preencha o nome da armadilha!', [{ text: 'OK', style: 'cancel' }]);
+        return;
+      }
+      if (!coordenadasObjeto) {
+        Alert.alert('Alerta', 'Marque as coordenadas!', [{ text: 'OK', style: 'cancel' }]);
+        return;
+      }
+
       const response = await axios.post(`http://10.0.2.2:3000/armadilha/cadastro`, {
         nomeArmadilha: nome,
-        latitude: latitude, 
-        longitude: longitude, 
+        coordenada: coordenadasObjeto,
         talhaoId: talhaoId
       }, {
         headers: {
@@ -49,20 +62,17 @@ export default function CriarArmadilha() {
       </View>
 
       <View style={styles.secondHalf}>
+        <ScrollView contentContainerStyle={styles.armadilhaContainer}>
         <View style={styles.secondHalfInputs}>
           <Text style={styles.label}>Nome</Text>
           <TextInput style={[styles.input, { paddingLeft: 16 }]}
             placeholder="Nome" onChangeText={(text) => setNome(text)} />
 
-          <Text style={styles.label}>Latitude</Text>
-          <TextInput style={[styles.input, { paddingLeft: 16 }]}
-            placeholder="Latitude" onChangeText={(text) => setLatitude(text)} />
+          <Text style={styles.label}>Localização</Text>
+          <MapaArmadilha />
 
-          <Text style={styles.label}>Longitude</Text>
-          <TextInput style={[styles.input, { height: 44, paddingLeft: 16, textAlignVertical: 'top' }]}
-            placeholder="Longitude"
-           onChangeText={(text) => setLongitude(text)} />
         </View>
+        </ScrollView>
 
         <View style={styles.secondHalfButton}>
           <TouchableOpacity style={styles.button} onPress={() => handleCadastrar()}>
@@ -105,6 +115,9 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     paddingHorizontal: 30,
     justifyContent: 'flex-start',
+  },
+  armadilhaContainer: {
+    height: "100%",
   },
   secondHalfInputs: {
     marginTop: 50,

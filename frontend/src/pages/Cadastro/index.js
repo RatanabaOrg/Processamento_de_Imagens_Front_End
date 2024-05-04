@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import firebase from '@react-native-firebase/app';
-import auth from '@react-native-firebase/auth';
 import axios from 'axios';
 
 export default function Cadastro() {
-
   const navigation = useNavigation();
 
   const [nome, setNome] = useState('');
@@ -28,21 +25,11 @@ export default function Cadastro() {
   const [imageSize, setImageSize] = useState(150);
   const [inputFocused, setInputFocused] = useState(false);
 
-  const handleInputFocus = () => {
-    setImageSize(0);
-    setInputFocused(true);
-  }
+  const handleInputFocus = () => { setImageSize(0); setInputFocused(true); }
 
-  const handleInputBlur = () => {
-    setImageSize(150);
-    setInputFocused(false);
-  }
+  const handleInputBlur = () => { setImageSize(150); setInputFocused(false); }
 
-  useEffect(() => {
-    return () => {
-      setInputFocused(false);
-    };
-  }, []);
+  useEffect(() => { return () => { setInputFocused(false); }; }, []);
 
   const handlePage = () => {
     if (nome === '' || email === '' || senha === '' || senha2 === '') return;
@@ -58,7 +45,11 @@ export default function Cadastro() {
       setCidade(localidade);
       setUF(uf);
     } catch (error) {
-      console.error('Erro ao buscar endereço pelo CEP:', error);
+      // Alert.alert(
+      //   "Erro", "Não foi possível ao buscar endereço pelo CEP",
+      //   [{ text: "Cancelar", style: "cancel" }]
+      // );
+      console.log('Erro ao buscar endereço pelo CEP:', error);
     }
   };
 
@@ -93,13 +84,10 @@ export default function Cadastro() {
     <SafeAreaView style={styles.container}>
       <View style={inputFocused ? styles.firstHalfFocused : styles.firstHalf}>
         {(page === 1 || page === 2) && (
-          <Image
-            source={require('./logo.png')}
-            style={[
-              styles.image,
-              {
-                height: inputFocused ? 0 : (page === 1 ? 250 : 150),
-                width: inputFocused ? 0 : (page === 1 ? 250 : 150),
+          <Image source={require('./logo.png')}
+            style={[ styles.imagem, {
+                height: inputFocused ? 0 : (page === 1 ? 330 : 200),
+                width: inputFocused ? 0 : (page === 1 ? 330 : 200),
               },
             ]}
           />
