@@ -116,7 +116,7 @@ export default function MapaPoligonoEditar() {
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={isDrawing ? stopDrawing : startDrawing}>
-          <Text style={styles.buttonText}>{isDrawing ? 'Parar' : 'Começar a desenhar'}</Text>
+          <Text style={styles.buttonText}>{isDrawing ? 'Parar' : 'Editar'}</Text>
         </TouchableOpacity>
       </View>
     </View>

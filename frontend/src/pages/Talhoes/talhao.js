@@ -39,7 +39,7 @@ export default function VerTalhao() {
       }
     };
 
-    navigation.navigate('EditarArmadilha', { armadilhaId: armadilhaId });
+    navigation.navigate('VerArmadilha', { armadilhaId: armadilhaId });
     fetchArmadilha();
   };
 
@@ -102,7 +102,7 @@ export default function VerTalhao() {
 
           <View>
             <TouchableOpacity activeOpacity={0.7} onPress={() => handleSeeMore(talhao.id)}>
-              <Text style={styles.seeMore}>Ver mais...</Text>
+              <Text style={styles.seeMore}>Ver/Editar</Text>
             </TouchableOpacity>
           </View>
         </View>

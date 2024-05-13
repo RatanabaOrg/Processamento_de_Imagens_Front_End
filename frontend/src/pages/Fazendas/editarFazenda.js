@@ -123,8 +123,11 @@ export default function EditarFazenda() {
           <View style={styles.secondHalfInputs}>
             <Text style={styles.label}>Nome</Text>
             <TextInput style={styles.input} placeholder={fazenda ? fazenda.nomeFazenda : ''} value={nomeFazenda} onChangeText={(text) => setNomeFazenda(text)} />
-
-            {coordenadaSede &&(<MapaPoligonoEditar />)}
+            
+            {coordenadaSede &&
+              <><Text style={styles.label}>Localização</Text>
+              <MapaPoligonoEditar /></>
+            }
           </View>
         </ScrollView>
 

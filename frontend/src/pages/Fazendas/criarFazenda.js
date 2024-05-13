@@ -102,7 +102,7 @@ export default function CriarFazenda() {
   
       await AsyncStorage.clear();
   
-      navigation.navigate('Main', { screen: 'Clientes' });
+      navigation.navigate('Main', { screen: 'Fazendas' });
     } catch (error) {
       Alert.alert('Alerta', 'Erro ao cadastrar fazenda', [{ text: 'OK', style: 'cancel' }]);
       console.log('Erro ao cadastrar fazenda:', error);

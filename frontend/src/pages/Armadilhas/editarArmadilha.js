@@ -19,6 +19,7 @@ export default function EditarArmadilha() {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { armadilhaId } = route.params;
+      
       try {
         const response = await axios.get(`http://10.0.2.2:3000/armadilha/${armadilhaId}`, {
           headers: {
@@ -109,11 +110,10 @@ export default function EditarArmadilha() {
         <ScrollView contentContainerStyle={styles.armadilhaContainer}>
         <View style={styles.secondHalfInputs}>
           <Text style={styles.label}>Nome</Text>
-          <TextInput style={styles.input} placeholder={armadilha ? armadilha.nomeArmadilha : ''} value={nome} onChangeText={(text) => setNome(text)} />
+          <TextInput style={styles.input} placeholder={armadilha ? armadilha.nomeArmadilha : ''} value={armadilha ? armadilha.nomeArmadilha : ''} onChangeText={(text) => setNome(text)} />
 
 
           <Text style={styles.label}>Localização</Text>
-
           <MapaArmadilhaEditar />
           
         </View>
