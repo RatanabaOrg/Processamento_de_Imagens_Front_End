@@ -23,6 +23,8 @@ export default function Fazendas() {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const usuarioId = currentUser.uid;
+      
+      console.log("oiii");
 
       const response = await axios.get(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
         headers: {
@@ -147,7 +149,7 @@ export default function Fazendas() {
                   <Text style={styles.fazendaNome}>{fazenda.nomeFazenda}</Text>
                   {!cliente ?
                     <Text style={styles.fazendaNomeAgri}>{fazenda.nomeUsuario}</Text>
-                    : null}
+                  : null}
                 </View>
 
                 <TouchableOpacity style={styles.arrowIcon} onPress={() => handleFazenda(fazenda.id)}>
@@ -158,9 +160,11 @@ export default function Fazendas() {
           ))}
         </ScrollView>
 
-        <TouchableOpacity style={styles.button} onPress={() => handleCadastro()}>
-          <Text style={styles.buttonText}>Cadastrar fazenda</Text>
-        </TouchableOpacity>
+        {!cliente ?
+          <TouchableOpacity style={styles.button} onPress={() => handleCadastro()}>
+            <Text style={styles.buttonText}>Cadastrar fazenda</Text>
+          </TouchableOpacity>
+        : null}
       </View>
     </SafeAreaView>
   );

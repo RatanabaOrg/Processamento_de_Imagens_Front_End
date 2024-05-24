@@ -15,11 +15,11 @@ export default function VerArmadilha() {
   const route = useRoute();
   const [idArmadilha, setIdArmadilha] = useState(null);
   const [armadilha, setArmadilha] = useState(null);
-
   const [nome, setNome] = useState('');
-  
+  const [refresh, setRefresh] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
   const [showSendButton, setShowSendButton] = useState(false);
+  const [pragas, setPragas] = useState(0);
 
   const handleSeeMore = (armadilhaId) => {
     navigation.navigate('EditarArmadilha', { armadilhaId: armadilhaId });
@@ -85,13 +85,18 @@ export default function VerArmadilha() {
         const response = await storage().ref(`armadilha/${newName}`).putFile(uri);
         const imgUrl = await storage().ref(`armadilha/${newName}`).getDownloadURL();
 
-        const currentUser = firebase.auth().currentUser;
-        const id = await currentUser.uid;
-        
         await firebase.firestore().collection('Armadilha').doc(idArmadilha).update({
-          fotos: firebase.firestore.FieldValue.arrayUnion({ url: imgUrl, analisado: false })
-      });
+          fotos: firebase.firestore.FieldValue.arrayUnion(imgUrl)
+        });
         setShowSendButton(false);
+
+        var { armadilhaId } = route.params;
+
+        console.log(armadilhaId);
+
+        await axios.get(`http://10.0.2.2:5000/image/${armadilhaId}`);
+
+        setRefresh(prev => !prev);
       } catch (error) {
         console.log('Erro ao fazer upload da imagem:', error);
       }
@@ -115,7 +120,9 @@ export default function VerArmadilha() {
           }
         });
         setArmadilha(response.data);
-        // await AsyncStorage.setItem('poligno', JSON.stringify(response.data.coordenadas));
+        if (response.data.pragas != undefined) {
+          setPragas(response.data.pragas)
+        }
       } catch (error) {
         console.log('Erro ao buscar armadilha: ', error);
       }
@@ -127,7 +134,7 @@ export default function VerArmadilha() {
     });
 
     return unsubscribe;
-  }, [navigation, route.params]);
+  }, [navigation, route.params, refresh]);
 
 
   return (
@@ -154,34 +161,27 @@ export default function VerArmadilha() {
           </View>
         </View>
 
-        <Text style={styles.armadilhas}>Dashboard</Text>
+        <Text style={styles.soma}>Soma das pragas: {pragas}</Text>
 
         <ScrollView>
-
-          <View style={styles.thirdHalf}>
-            <Text>card</Text>
-            <Text>card</Text>
-            <Text>card</Text>
-          </View>
-
           <View style={styles.forthHalf}>
-          <View style={styles.containerImport}>
-          {showSendButton ? (
-            <>
-              <Feather style={{ marginLeft: 'auto' }} onPress={handleDiscardImg}
-                name="x" size={44} color="black" />
-              <View style={styles.photoSend}>
-                <Feather name="check-square" size={44} color="#2C8C1D" />
-                <Text style={styles.importText}>Imagem da armadilha importada</Text>
-              </View>
-            </>
-          ) : (
-            <TouchableOpacity onPress={showFileOptions} style={styles.uploadBtn}>
-              <Feather name="upload" size={44} color="black" />
-              <Text style={styles.importText}>Importe a imagem de sua armadilha</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+            <View style={styles.containerImport}>
+              {showSendButton ? (
+                <>
+                  <Feather style={{ marginLeft: 'auto' }} onPress={handleDiscardImg}
+                    name="x" size={44} color="black" />
+                  <View style={styles.photoSend}>
+                    <Feather name="check-square" size={44} color="#2C8C1D" />
+                    <Text style={styles.importText}>Imagem da armadilha importada</Text>
+                  </View>
+                </>
+              ) : (
+                <TouchableOpacity onPress={showFileOptions} style={styles.uploadBtn}>
+                  <Feather name="upload" size={44} color="black" />
+                  <Text style={styles.importText}>Importe a imagem de sua armadilha</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         </ScrollView>
 
@@ -255,13 +255,18 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     fontWeight: '500',
   },
+  soma: {
+    color: '#000',
+    fontSize: 16,
+    marginBottom: 16,
+  },
   armadilhas: {
     color: '#000',
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 12,
-  }, 
-  
+  },
+
   containerImport: {
     flex: 1,
     // justifyContent: 'center',

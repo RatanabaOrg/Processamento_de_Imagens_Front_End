@@ -16,6 +16,7 @@ export default function MapaArmadilhaEditar() {
 
         while (coordenadasObjeto === null) {
           const coordenadas = await AsyncStorage.getItem('poligno');
+          console.log(coordenadas)
           coordenadasObjeto = JSON.parse(coordenadas);
       
           if (coordenadasObjeto !== null) {

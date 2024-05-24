@@ -13,6 +13,8 @@ export default function VerTalhao() {
   const [idtalhao, setIdTalhao] = useState(null);
   const [talhao, setTalhao] = useState(null);
   const [filteredArmadilhas, setFilteredArmadilhas] = useState([]);
+  const [cliente, setCliente] = useState(false);
+  const [pragas, setPragas] = useState();
 
   const [nome, setNome] = useState('');
   const [tipoPlantacao, setTipoPlantacao] = useState('');
@@ -25,7 +27,16 @@ export default function VerTalhao() {
     const fetchArmadilha = async () => {
       AsyncStorage.clear();
       const currentUser = firebase.auth().currentUser;
-      const idToken = await currentUser.getIdToken();
+      const idToken = await currentUser.getIdToken(); const usuarioId = currentUser.uid;
+
+      const response = await axios.get(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      setCliente(response.data.cliente);
+
       try {
         const response = await axios.get(`http://10.0.2.2:3000/armadilha/${armadilhaId}`, {
           headers: {
@@ -64,6 +75,16 @@ export default function VerTalhao() {
         });
         setTalhao(response.data);
         await AsyncStorage.setItem('poligno', JSON.stringify(response.data.coordenadas));
+
+        var armadilhas = response.data.armadilha;
+        var somaPragas = 0;
+        for (let a = 0; a < armadilhas.length; a++) {
+          if (armadilhas[a].pragas != undefined) {
+            somaPragas += armadilhas[a].pragas
+          }
+        }
+        setPragas(somaPragas);
+
       } catch (error) {
         console.log('Erro ao buscar talhao: ', error);
       }
@@ -107,7 +128,9 @@ export default function VerTalhao() {
           </View>
         </View>
 
+
         <Text style={styles.armadilhas}>Armadilhas</Text>
+        <Text style={styles.soma}>Soma das pragas: {pragas}</Text>
 
         <ScrollView>
           {talhao && talhao.armadilha && talhao.armadilha.length > 0 ? (
@@ -129,9 +152,11 @@ export default function VerTalhao() {
           }
         </ScrollView>
 
-        <TouchableOpacity style={styles.button} onPress={() => handleCadastro()}>
-          <Text style={styles.buttonText}>Criar armadilha</Text>
-        </TouchableOpacity>
+        {!cliente ?
+          <TouchableOpacity style={styles.button} onPress={() => handleCadastro()}>
+            <Text style={styles.buttonText}>Criar armadilha</Text>
+          </TouchableOpacity>
+          : null}
       </View>
     </SafeAreaView>
   );
@@ -200,7 +225,12 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 18,
     fontWeight: '600',
-    marginBottom: 12,
+    marginBottom: 2,
+  },
+  soma: {
+    color: '#000',
+    fontSize: 16,
+    marginBottom: 16,
   },
   armadilha: {
     flexDirection: 'row',

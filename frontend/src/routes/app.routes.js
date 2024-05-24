@@ -17,7 +17,7 @@ import Fazendas from '../pages/Fazendas';
 import CriarFazenda from '../pages/Fazendas/criarFazenda';
 import VerFazenda from '../pages/Fazendas/fazenda';
 import EditarFazenda from '../pages/Fazendas/editarFazenda';
-// import FazendaGeoJson from '../pages/Fazendas/criargeojson';
+import FazendaGeoJson from '../pages/Fazendas/criargeojson';
 
 import MapaPoligono from '../pages/Mapa/mapaPoligono';
 import MapaArmadilha from '../pages/Mapa/mapaArmadilha';
@@ -127,7 +127,7 @@ export default function AppRoutes() {
       <Stack.Screen name="CriarFazenda" component={CriarFazenda} options={{ headerShown: false }} />
       <Stack.Screen name="VerFazenda" component={VerFazenda} options={{ headerShown: false }} />
       <Stack.Screen name="EditarFazenda" component={EditarFazenda} options={{ headerShown: false }} />
-      {/* <Stack.Screen name="FazendaGeoJson" component={FazendaGeoJson} options={{ headerShown: false }} /> */}
+      <Stack.Screen name="FazendaGeoJson" component={FazendaGeoJson} options={{ headerShown: false }} />
 
       <Stack.Screen name="MapaPoligono" component={MapaPoligono} options={{ headerShown: false }} />
       <Stack.Screen name="MapaArmadilha" component={MapaArmadilha} options={{ headerShown: false }} />

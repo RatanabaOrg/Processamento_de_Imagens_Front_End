@@ -8,7 +8,7 @@ import axios from 'axios';
 import MapaPoligono from '../Mapa/mapaPoligono';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function CriarFazenda() {
+export default function FazendaGeoJson() {
 
   const navigation = useNavigation();
   const [nome, setNome] = useState('');
@@ -66,7 +66,7 @@ export default function CriarFazenda() {
   const handleSubmit = async () => {
     try {
       const coordenadas = await AsyncStorage.getItem('poligno');
-
+      
       if (!coordenadas) {
         Alert.alert('Alerta', 'Preencha a localização!', [{ text: 'OK', style: 'cancel' }]);
         return;
@@ -79,12 +79,12 @@ export default function CriarFazenda() {
         Alert.alert('Alerta', 'Escolha um agricultor!', [{ text: 'OK', style: 'cancel' }]);
         return;
       }
-
+  
       const coordenadasObjeto = JSON.parse(coordenadas);
-
+  
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
-
+  
       const response = await axios.post(
         'http://10.0.2.2:3000/fazenda/cadastro',
         {
@@ -99,9 +99,9 @@ export default function CriarFazenda() {
           }
         }
       );
-
+  
       await AsyncStorage.clear();
-
+  
       navigation.navigate('Main', { screen: 'Fazendas' });
     } catch (error) {
       Alert.alert('Alerta', 'Erro ao cadastrar fazenda', [{ text: 'OK', style: 'cancel' }]);
@@ -126,31 +126,35 @@ export default function CriarFazenda() {
 
       <View style={styles.secondHalf}>
         <ScrollView contentContainerStyle={styles.fazendaContainer}>
-          <View style={styles.secondHalfInputs}>
-            <Text style={styles.label}>Nome</Text>
-            <TextInput style={[styles.input, { paddingLeft: 16 }]}
-              placeholder="Nome" onChangeText={(text) => setNome(text)} />
+        <View style={styles.secondHalfInputs}>
+          <Text style={styles.label}>Nome</Text>
+          <TextInput style={[styles.input, { paddingLeft: 16 }]}
+            placeholder="Nome" onChangeText={(text) => setNome(text)} />
 
-            <Text style={styles.label}>Agricultor</Text>
-            <View style={styles.input}>
-              <Picker
-                selectedValue={agricultor}
-                onValueChange={(itemValue, itemIndex) => setAgricultor(itemValue)}
-              >
-                <Picker.Item label="Escolha" value="" />
-                {agricultores.map((agricultor) => (
-                  <Picker.Item key={agricultor.id} label={agricultor.nome} value={agricultor.id} />
-                ))}
-              </Picker>
-            </View>
+          {agricultores.length > 0 ? (
+            <>
+              <Text style={styles.label}>Agricultor</Text>
+              <View style={styles.input}>
+                <Picker
+                  selectedValue={agricultor}
+                  onValueChange={(itemValue, itemIndex) => setAgricultor(itemValue)}
+                >
+                  <Picker.Item label="Escolha" value="" />
+                  {agricultores.map((agricultor) => (
+                    <Picker.Item key={agricultor.id} label={agricultor.nome} value={agricultor.id} />
+                  ))}
+                </Picker>
+              </View>
+            </>
+          ) : null}
 
-            <Text style={styles.label}>Localização</Text>
-            {/* <TextInput style={[styles.input, { height: 100, paddingLeft: 16, textAlignVertical: 'top' }]}
+          <Text style={styles.label}>Localização</Text>
+          {/* <TextInput style={[styles.input, { height: 100, paddingLeft: 16, textAlignVertical: 'top' }]}
             placeholder="[[Latitude, Longitude], [Latitude, Longitude]]"
             multiline={true} onChangeText={(text) => setCoordenadas(text)} /> */}
-            <MapaPoligono />
+        <MapaPoligono />
 
-          </View>
+        </View>
         </ScrollView>
 
         <View style={styles.secondHalfButton}>

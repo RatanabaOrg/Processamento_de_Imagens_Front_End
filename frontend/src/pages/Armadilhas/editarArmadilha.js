@@ -54,7 +54,7 @@ export default function EditarArmadilha() {
                 'Content-Type': 'application/json'
               }
             });
-           
+            navigation.goBack();           
             navigation.goBack();
           } catch (error) {
             console.log('Erro ao deletar usuario:', error);
