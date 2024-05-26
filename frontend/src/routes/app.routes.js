@@ -17,7 +17,7 @@ import Fazendas from '../pages/Fazendas';
 import CriarFazenda from '../pages/Fazendas/criarFazenda';
 import VerFazenda from '../pages/Fazendas/fazenda';
 import EditarFazenda from '../pages/Fazendas/editarFazenda';
-import FazendaGeoJson from '../pages/Fazendas/criargeojson';
+import FazendaGeoJson from '../pages/Fazendas/criarGeojson';
 
 import MapaPoligono from '../pages/Mapa/mapaPoligono';
 import MapaArmadilha from '../pages/Mapa/mapaArmadilha';
@@ -27,10 +27,12 @@ import MapaArmadilhaEditar from '../pages/Mapa/mapaArmadilhaEditar';
 import VerTalhao from '../pages/Talhoes/talhao';
 import EditarTalhao from '../pages/Talhoes/editarTalhao';
 import CriarTalhao from '../pages/Talhoes/criarTalhao';
+import TalhaoGeoJson from '../pages/Talhoes/criarGeojson';
 
 import VerArmadilha from '../pages/Armadilhas/armadilha';
 import EditarArmadilha from '../pages/Armadilhas/editarArmadilha';
 import CriarArmadilha from '../pages/Armadilhas/criarArmadilha';
+import ArmadilhaGeoJson from '../pages/Armadilhas/criarGeojson';
 
 import Perfil from '../pages/Perfil';
 import EditarPerfil from '../pages/Perfil/editarPerfil';
@@ -137,10 +139,12 @@ export default function AppRoutes() {
       <Stack.Screen name="VerTalhao" component={VerTalhao} options={{ headerShown: false }} />
       <Stack.Screen name="EditarTalhao" component={EditarTalhao} options={{ headerShown: false }} />
       <Stack.Screen name="CriarTalhao" component={CriarTalhao} options={{ headerShown: false }} />
+      <Stack.Screen name="TalhaoGeoJson" component={TalhaoGeoJson} options={{ headerShown: false }} />
 
       <Stack.Screen name="VerArmadilha" component={VerArmadilha} options={{ headerShown: false }} />
       <Stack.Screen name="EditarArmadilha" component={EditarArmadilha} options={{ headerShown: false }} />
       <Stack.Screen name="CriarArmadilha" component={CriarArmadilha} options={{ headerShown: false }} />
+      <Stack.Screen name="ArmadilhaGeoJson" component={ArmadilhaGeoJson} options={{ headerShown: false }} />
 
       <Stack.Screen name="EditarPerfil" component={EditarPerfil} options={{ headerShown: false }} />
     </Stack.Navigator>

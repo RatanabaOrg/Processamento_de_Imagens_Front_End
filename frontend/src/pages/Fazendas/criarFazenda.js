@@ -23,7 +23,7 @@ export default function CriarFazenda() {
       const idToken = await currentUser.getIdToken();
       const id = await currentUser.uid;
 
-      setAgricultor(id);
+      // setAgricultor(id);
 
       try {
         const response = await axios.get(`http://10.0.2.2:3000/usuario/${id}`, {
@@ -130,7 +130,6 @@ export default function CriarFazenda() {
             <Text style={styles.label}>Nome</Text>
             <TextInput style={[styles.input, { paddingLeft: 16 }]}
               placeholder="Nome" onChangeText={(text) => setNome(text)} />
-
             <Text style={styles.label}>Agricultor</Text>
             <View style={styles.input}>
               <Picker

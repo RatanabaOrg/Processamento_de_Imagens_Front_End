@@ -1,71 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Alert, PermissionsAndroid, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Alert, PermissionsAndroid, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
-import { Picker } from '@react-native-picker/picker';
 import firebase from '@react-native-firebase/app';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import RNFetchBlob from 'rn-fetch-blob';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function FazendaGeoJson() {
+export default function CriarArmadilha() {
 
   const navigation = useNavigation();
-  const [nome, setNome] = useState('');
-  const [agricultor, setAgricultor] = useState('');
-  const [agricultores, setAgricultores] = useState([]);
-  const [coordenadas, setCoordenadas] = useState('');
-  const [cliente, setCliente] = useState(true);
+  const route = useRoute();
   const [geoJsonData, setGeoJsonData] = useState(null);
   const [show, setShow] = useState(false);
-
-  useEffect(() => {
-    const fetchUsuarios = async () => {
-      const currentUser = firebase.auth().currentUser;
-      const idToken = await currentUser.getIdToken();
-      const id = await currentUser.uid;
-
-      // setAgricultor(id);
-
-      try {
-        const response = await axios.get(`http://10.0.2.2:3000/usuario/${id}`, {
-          headers: {
-            'Authorization': `Bearer ${idToken}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        setCliente(response.data.cliente);
-
-        if (response.data.cliente === false) {
-          const responseUsuarios = await axios.get('http://10.0.2.2:3000/usuario', {
-            headers: {
-              'Authorization': `Bearer ${idToken}`,
-              'Content-Type': 'application/json'
-            }
-          });
-
-          const afterAgricultores = responseUsuarios.data.map(item => {
-            if (id !== item.id) {
-              return {
-                id: item.id,
-                nome: item.nome
-              };
-            }
-            return null;
-          }).filter(item => item !== null);
-
-          setAgricultores(afterAgricultores);
-        }
-      } catch (error) {
-        console.log('Erro ao buscar usuários:', error);
-      }
-    };
-
-    fetchUsuarios();
-  }, []);
 
   const requestStoragePermission = async () => {
     try {
@@ -113,82 +63,54 @@ export default function FazendaGeoJson() {
     }
   };
 
-
-  const handleSubmit = async () => {
-    if (show === false) {
-      Alert.alert('Alerta', 'Selecione o arquivo geojson!', [{ text: 'OK', style: 'cancel' }]);
-      return;
-    }
-
-    if (!agricultor) {
-      Alert.alert('Alerta', 'Escolha um agricultor!', [{ text: 'OK', style: 'cancel' }]);
-      return;
-    }
-
-    try {
-      const currentUser = firebase.auth().currentUser;
-      const idToken = await currentUser.getIdToken();
-
-      const response = await axios.post(
-        'http://10.0.2.2:3000/fazenda/cadastro',
-        {
-          geojson: geoJsonData,
-          usuarioId: agricultor
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${idToken}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      navigation.navigate('Main', { screen: 'Fazendas' });
-    } catch (error) {
-      Alert.alert('Alerta', 'Erro ao cadastrar fazenda', [{ text: 'OK', style: 'cancel' }]);
-      console.log('Erro ao cadastrar fazenda:', error);
-    }
-  };
-
   const handleDiscardArchive = () => {
     setShow(false);
   }
 
+  const handleCadastrar = async () => {
+    try {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { talhaoId } = route.params;
+      console.log("talhao", talhaoId)
+
+      if (!geoJsonData) {
+        Alert.alert('Alerta', 'Selecione o arquivo geojson!', [{ text: 'OK', style: 'cancel' }]);
+        return;
+      }
+
+      const response = await axios.post(`http://10.0.2.2:3000/armadilha/cadastro`, {
+        geoJson: geoJsonData,
+        talhaoId: talhaoId
+      }, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      navigation.goBack();
+    } catch (error) {
+      console.error('Erro ao salvar alterações:', error);
+    }
+  };
   return (
     <SafeAreaView style={styles.container}>
-
       <View style={styles.firstHalf}>
         <View>
           <View style={styles.firstHalfContent}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackContainer}>
               <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
-              <Text style={styles.title}>Cadastro de fazenda</Text>
+              <Text style={styles.title}>Criar armadilha</Text>
             </TouchableOpacity>
           </View>
         </View>
       </View>
 
       <View style={styles.secondHalf}>
-        <ScrollView contentContainerStyle={styles.fazendaContainer}>
-          <View style={styles.secondHalfInputs}>
-            {agricultores.length > 0 ? (
-              <>
-                <Text style={styles.label}>Agricultor</Text>
-                <View style={styles.input}>
-                  <Picker
-                    selectedValue={agricultor}
-                    onValueChange={(itemValue, itemIndex) => setAgricultor(itemValue)}
-                  >
-                    <Picker.Item label="Escolha" value="" />
-                    {agricultores.map((agricultor) => (
-                      <Picker.Item key={agricultor.id} label={agricultor.nome} value={agricultor.id} />
-                    ))}
-                  </Picker>
-                </View>
-              </>
-            ) : null}
+        <ScrollView contentContainerStyle={styles.armadilhaContainer}>
+        <View style={styles.secondHalfInputs}>
 
-            <View style={styles.containerImport}>
+        <View style={styles.containerImport}>
               {show ? (
                 <>
                   <Feather style={{ marginLeft: 'auto' }} onPress={handleDiscardArchive}
@@ -206,11 +128,11 @@ export default function FazendaGeoJson() {
               )}
             </View>
 
-          </View>
+        </View>
         </ScrollView>
 
         <View style={styles.secondHalfButton}>
-          <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+          <TouchableOpacity style={styles.button} onPress={() => handleCadastrar()}>
             <Text style={styles.buttonText}>Enviar cadastro</Text>
           </TouchableOpacity>
         </View>
@@ -251,6 +173,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     justifyContent: 'flex-start',
   },
+  armadilhaContainer: {
+    height: "100%",
+  },
   secondHalfInputs: {
     marginTop: 50,
   },
@@ -273,19 +198,6 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     alignItems: 'center',
   },
-  button: {
-    backgroundColor: '#2C8C1D',
-    borderRadius: 10,
-    paddingHorizontal: 56,
-    paddingVertical: 12,
-    width: '100%',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-
   containerImport: {
     flex: 1,
     // justifyContent: 'center',
@@ -312,6 +224,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: "#000",
     padding: 12,
+  },
+  button: {
+    backgroundColor: '#2C8C1D',
+    borderRadius: 10,
+    paddingHorizontal: 56,
+    paddingVertical: 12,
+    width: '100%',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
   },
 
 });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
@@ -27,13 +27,28 @@ export default function VerFazenda() {
   };
 
   const handleCadastro = (idFazenda) => {
+    Alert.alert(
+      `Criar talhão`,
+      "Escolha como você quer fazer o cadastro:",
+      [{
+        text: "Cancelar",
+        style: "cancel"
+      },{
+        text: "Por GeoJson",
+        onPress: () => {
+          navigation.navigate('TalhaoGeoJson', {fazendaId: idFazenda});
+        }
+      },{
+        text: "Por mapa",
+        onPress: (handleMap)
+      }]
+    );
+  };
+
+  const handleMap = () => {
     AsyncStorage.clear();
     navigation.navigate('CriarTalhao', { fazendaId: idFazenda });
   };
-
-  useEffect(() => {
-
-  }, []);
 
   useEffect(() => {
     const fetchFazenda = async () => {
