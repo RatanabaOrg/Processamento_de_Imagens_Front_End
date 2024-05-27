@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
@@ -10,11 +10,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function VerFazenda() {
   const navigation = useNavigation();
   const route = useRoute();
+  const [cliente, setCliente] = useState(false);
   const [fazenda, setFazenda] = useState(null);
   const [talhoes, setTalhoes] = useState([]);
   const [idFazenda, setIdFazenda] = useState(null);
   const [nome, setNome] = useState('');
   const [coordenadas, setCoordenadas] = useState('');
+  const [pragas, setPragas] = useState();
 
   const handleSeeMore = () => {
     navigation.navigate('EditarFazenda', { fazendaId: idFazenda });
@@ -25,13 +27,28 @@ export default function VerFazenda() {
   };
 
   const handleCadastro = (idFazenda) => {
+    Alert.alert(
+      `Criar talhão`,
+      "Escolha como você quer fazer o cadastro:",
+      [{
+        text: "Cancelar",
+        style: "cancel"
+      },{
+        text: "Por GeoJson",
+        onPress: () => {
+          navigation.navigate('TalhaoGeoJson', {fazendaId: idFazenda});
+        }
+      },{
+        text: "Por mapa",
+        onPress: (handleMap)
+      }]
+    );
+  };
+
+  const handleMap = () => {
     AsyncStorage.clear();
     navigation.navigate('CriarTalhao', { fazendaId: idFazenda });
   };
-
-  useEffect(() => {
-
-  }, []);
 
   useEffect(() => {
     const fetchFazenda = async () => {
@@ -40,6 +57,17 @@ export default function VerFazenda() {
       const idToken = await currentUser.getIdToken();
       const { fazendaId } = route.params;
       setIdFazenda(fazendaId)
+
+      const usuarioId = currentUser.uid;
+
+      const response = await axios.get(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      setCliente(response.data.cliente);
+
       try {
         const response = await axios.get(`http://10.0.2.2:3000/fazenda/completo/${fazendaId}`, {
           headers: {
@@ -48,6 +76,21 @@ export default function VerFazenda() {
           }
         });
         setFazenda(response.data);
+        console.log(response.data.talhoes);
+
+        var somaPragas = 0;
+        var talhoes = response.data.talhoes
+
+        for (let t = 0; t < talhoes.length; t++) {
+          var armadilhas = talhoes[t].armadilha;
+          for (let a = 0; a < armadilhas.length; a++) {
+            if (armadilhas[a].pragas != undefined) {
+              somaPragas += armadilhas[a].pragas
+            }
+          }
+
+        }
+        setPragas(somaPragas);
 
         await AsyncStorage.setItem('poligno', JSON.stringify(response.data.coordenadaSede));
       } catch (error) {
@@ -90,6 +133,8 @@ export default function VerFazenda() {
 
         <Text style={styles.talhoes}>Talhões</Text>
 
+        <Text style={styles.soma}>Soma das pragas: {pragas}</Text>
+
         <ScrollView>
           {fazenda && fazenda.talhoes && fazenda.talhoes.length > 0 ? (
             fazenda.talhoes.map(talhao => (
@@ -110,9 +155,11 @@ export default function VerFazenda() {
           }
         </ScrollView>
 
-        <TouchableOpacity style={styles.button} onPress={() => handleCadastro(idFazenda)}>
-          <Text style={styles.buttonText}>Criar talhão</Text>
-        </TouchableOpacity>
+        {!cliente ?
+          <TouchableOpacity style={styles.button} onPress={() => handleCadastro(idFazenda)}>
+            <Text style={styles.buttonText}>Criar talhão</Text>
+          </TouchableOpacity>
+          : null}
       </View>
     </SafeAreaView>
   );
@@ -179,11 +226,16 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
+  soma: {
+    color: '#000',
+    fontSize: 16,
+    marginBottom: 16,
+  },
   talhoes: {
     color: '#000',
     fontSize: 18,
     fontWeight: '600',
-    marginBottom: 12,
+    marginBottom: 2,
   },
   talhao: {
     flexDirection: 'row',

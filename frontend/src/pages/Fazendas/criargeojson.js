@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Alert, PermissionsAndroid, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import { Picker } from '@react-native-picker/picker';
 import firebase from '@react-native-firebase/app';
 import axios from 'axios';
-import MapaPoligono from '../Mapa/mapaPoligono';
+import DocumentPicker from 'react-native-document-picker';
+import RNFS from 'react-native-fs';
+import RNFetchBlob from 'rn-fetch-blob';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function CriarFazenda() {
+export default function FazendaGeoJson() {
 
   const navigation = useNavigation();
   const [nome, setNome] = useState('');
@@ -16,6 +18,8 @@ export default function CriarFazenda() {
   const [agricultores, setAgricultores] = useState([]);
   const [coordenadas, setCoordenadas] = useState('');
   const [cliente, setCliente] = useState(true);
+  const [geoJsonData, setGeoJsonData] = useState(null);
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
     const fetchUsuarios = async () => {
@@ -63,33 +67,72 @@ export default function CriarFazenda() {
     fetchUsuarios();
   }, []);
 
-  const handleSubmit = async () => {
+  const requestStoragePermission = async () => {
     try {
-      const coordenadas = await AsyncStorage.getItem('poligno');
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        {
+          title: 'Storage Permission',
+          message: 'App needs access to your storage to read files',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    } catch (err) {
+      console.warn(err);
+      return false;
+    }
+  };
 
-      if (!coordenadas) {
-        Alert.alert('Alerta', 'Preencha a localização!', [{ text: 'OK', style: 'cancel' }]);
-        return;
-      }
-      if (!nome) {
-        Alert.alert('Alerta', 'Preencha o nome da fazenda!', [{ text: 'OK', style: 'cancel' }]);
-        return;
-      }
-      if (!agricultor) {
-        Alert.alert('Alerta', 'Escolha um agricultor!', [{ text: 'OK', style: 'cancel' }]);
-        return;
-      }
+  const pickDocument = async () => {
+    if (Platform.OS === 'android' && !(await requestStoragePermission())) {
+      return;
+    }
 
-      const coordenadasObjeto = JSON.parse(coordenadas);
+    try {
+      const res = await DocumentPicker.pick({
+        type: [DocumentPicker.types.allFiles],
+      });
+      
+      if  (res && res[0] && res[0].name && res[0].name.endsWith('.geojson')) {
+        const path = await RNFetchBlob.fs.stat(res[0].uri);
+        const fileContent = await RNFS.readFile(path.path, 'utf8');
+        setGeoJsonData(JSON.parse(fileContent));
+        setShow(true);
+      } else {
+        Alert.alert('Erro', 'Por favor, selecione um arquivo GeoJSON.');
+      }
+    } catch (error) {
+      if (DocumentPicker.isCancel(error)) {
+      } else {
+        console.error('Erro ao selecionar arquivo:', error);
+        Alert.alert('Erro', 'Erro ao selecionar arquivo.');
+      }
+    }
+  };
 
+
+  const handleSubmit = async () => {
+    if (show === false) {
+      Alert.alert('Alerta', 'Selecione o arquivo geojson!', [{ text: 'OK', style: 'cancel' }]);
+      return;
+    }
+
+    if (!agricultor) {
+      Alert.alert('Alerta', 'Escolha um agricultor!', [{ text: 'OK', style: 'cancel' }]);
+      return;
+    }
+
+    try {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
 
       const response = await axios.post(
         'http://10.0.2.2:3000/fazenda/cadastro',
         {
-          nomeFazenda: nome,
-          coordenadaSede: coordenadasObjeto,
+          geojson: geoJsonData,
           usuarioId: agricultor
         },
         {
@@ -100,8 +143,6 @@ export default function CriarFazenda() {
         }
       );
 
-      await AsyncStorage.clear();
-
       navigation.navigate('Main', { screen: 'Fazendas' });
     } catch (error) {
       Alert.alert('Alerta', 'Erro ao cadastrar fazenda', [{ text: 'OK', style: 'cancel' }]);
@@ -109,6 +150,9 @@ export default function CriarFazenda() {
     }
   };
 
+  const handleDiscardArchive = () => {
+    setShow(false);
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -127,27 +171,40 @@ export default function CriarFazenda() {
       <View style={styles.secondHalf}>
         <ScrollView contentContainerStyle={styles.fazendaContainer}>
           <View style={styles.secondHalfInputs}>
-            <Text style={styles.label}>Nome</Text>
-            <TextInput style={[styles.input, { paddingLeft: 16 }]}
-              placeholder="Nome" onChangeText={(text) => setNome(text)} />
-            <Text style={styles.label}>Agricultor</Text>
-            <View style={styles.input}>
-              <Picker
-                selectedValue={agricultor}
-                onValueChange={(itemValue, itemIndex) => setAgricultor(itemValue)}
-              >
-                <Picker.Item label="Escolha" value="" />
-                {agricultores.map((agricultor) => (
-                  <Picker.Item key={agricultor.id} label={agricultor.nome} value={agricultor.id} />
-                ))}
-              </Picker>
-            </View>
+            {agricultores.length > 0 ? (
+              <>
+                <Text style={styles.label}>Agricultor</Text>
+                <View style={styles.input}>
+                  <Picker
+                    selectedValue={agricultor}
+                    onValueChange={(itemValue, itemIndex) => setAgricultor(itemValue)}
+                  >
+                    <Picker.Item label="Escolha" value="" />
+                    {agricultores.map((agricultor) => (
+                      <Picker.Item key={agricultor.id} label={agricultor.nome} value={agricultor.id} />
+                    ))}
+                  </Picker>
+                </View>
+              </>
+            ) : null}
 
-            <Text style={styles.label}>Localização</Text>
-            {/* <TextInput style={[styles.input, { height: 100, paddingLeft: 16, textAlignVertical: 'top' }]}
-            placeholder="[[Latitude, Longitude], [Latitude, Longitude]]"
-            multiline={true} onChangeText={(text) => setCoordenadas(text)} /> */}
-            <MapaPoligono />
+            <View style={styles.containerImport}>
+              {show ? (
+                <>
+                  <Feather style={{ marginLeft: 'auto' }} onPress={handleDiscardArchive}
+                    name="x" size={44} color="black" />
+                  <View style={styles.archiveSend}>
+                    <Feather name="check-square" size={44} color="#2C8C1D" />
+                    <Text style={styles.importText}>Geojson selecionado!</Text>
+                  </View>
+                </>
+              ) : (
+                <TouchableOpacity onPress={pickDocument} style={styles.uploadBtn}>
+                  <Feather name="upload" size={44} color="black" />
+                  <Text style={styles.importText}>Selecione o arquivo geojson</Text>
+                </TouchableOpacity>
+              )}
+            </View>
 
           </View>
         </ScrollView>
@@ -194,9 +251,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     justifyContent: 'flex-start',
   },
-  fazendaContainer: {
-    height: "100%",
-  },
   secondHalfInputs: {
     marginTop: 50,
   },
@@ -230,6 +284,34 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     textAlign: 'center',
+  },
+
+  containerImport: {
+    flex: 1,
+    // justifyContent: 'center',
+    // alignItems: 'center',
+    marginTop: 24,
+    width: '100%',
+  },
+  archiveSend: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 160,
+  },
+  uploadBtn: {
+    borderWidth: 2.5,
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    borderColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 160,
+  },
+  importText: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: "#000",
+    padding: 12,
   },
 
 });

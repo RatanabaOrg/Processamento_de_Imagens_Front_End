@@ -63,8 +63,7 @@ export default function EditarFazenda() {
       const { fazendaId } = route.params;
       const response = await axios.put(`http://10.0.2.2:3000/fazenda/${fazendaId}`, {
         nomeFazenda: nomeFazenda,
-        coordenadaSede: coordenadasObjeto,
-        usuarioId: usuarioId
+        coordenadaSede: coordenadasObjeto
       }, {
         headers: {
           'Authorization': `Bearer ${idToken}`,
@@ -89,9 +88,6 @@ export default function EditarFazenda() {
             'Content-Type': 'application/json'
           }
         });
-
-        console.log(response.data);
-
         setFazenda(response.data);
         setNomeFazenda(response.data.nomeFazenda);
         setUsuarioId(response.data.usuarioId);
@@ -123,8 +119,11 @@ export default function EditarFazenda() {
           <View style={styles.secondHalfInputs}>
             <Text style={styles.label}>Nome</Text>
             <TextInput style={styles.input} placeholder={fazenda ? fazenda.nomeFazenda : ''} value={nomeFazenda} onChangeText={(text) => setNomeFazenda(text)} />
-
-            {coordenadaSede &&(<MapaPoligonoEditar />)}
+            
+            {coordenadaSede &&
+              <><Text style={styles.label}>Localização</Text>
+              <MapaPoligonoEditar /></>
+            }
           </View>
         </ScrollView>
 

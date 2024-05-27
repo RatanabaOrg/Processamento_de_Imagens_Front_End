@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -81,7 +81,24 @@ export default function Fazendas() {
   }, [navigation]);
 
   const handleCadastro = () => {
-    navigation.navigate('CriarFazenda');
+    Alert.alert(
+      `Cadastrar fazenda`,
+      "Escolha como você quer fazer o cadastro:",
+      [{
+        text: "Cancelar",
+        style: "cancel"
+      },{
+        text: "Por GeoJson",
+        onPress: () => {
+          navigation.navigate('FazendaGeoJson');
+        }
+      },{
+        text: "Por mapa",
+        onPress: () => {
+          navigation.navigate('CriarFazenda');
+        }
+      }]
+    );
   };
 
   useEffect(() => {
@@ -130,7 +147,7 @@ export default function Fazendas() {
                   <Text style={styles.fazendaNome}>{fazenda.nomeFazenda}</Text>
                   {!cliente ?
                     <Text style={styles.fazendaNomeAgri}>{fazenda.nomeUsuario}</Text>
-                    : null}
+                  : null}
                 </View>
 
                 <TouchableOpacity style={styles.arrowIcon} onPress={() => handleFazenda(fazenda.id)}>
@@ -141,9 +158,11 @@ export default function Fazendas() {
           ))}
         </ScrollView>
 
-        <TouchableOpacity style={styles.button} onPress={() => handleCadastro()}>
-          <Text style={styles.buttonText}>Cadastrar fazenda</Text>
-        </TouchableOpacity>
+        {!cliente ?
+          <TouchableOpacity style={styles.button} onPress={() => handleCadastro()}>
+            <Text style={styles.buttonText}>Cadastrar fazenda</Text>
+          </TouchableOpacity>
+        : null}
       </View>
     </SafeAreaView>
   );

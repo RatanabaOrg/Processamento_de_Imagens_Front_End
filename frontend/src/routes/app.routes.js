@@ -17,6 +17,7 @@ import Fazendas from '../pages/Fazendas';
 import CriarFazenda from '../pages/Fazendas/criarFazenda';
 import VerFazenda from '../pages/Fazendas/fazenda';
 import EditarFazenda from '../pages/Fazendas/editarFazenda';
+import FazendaGeoJson from '../pages/Fazendas/criarGeojson';
 
 import MapaPoligono from '../pages/Mapa/mapaPoligono';
 import MapaArmadilha from '../pages/Mapa/mapaArmadilha';
@@ -26,11 +27,12 @@ import MapaArmadilhaEditar from '../pages/Mapa/mapaArmadilhaEditar';
 import VerTalhao from '../pages/Talhoes/talhao';
 import EditarTalhao from '../pages/Talhoes/editarTalhao';
 import CriarTalhao from '../pages/Talhoes/criarTalhao';
+import TalhaoGeoJson from '../pages/Talhoes/criarGeojson';
 
+import VerArmadilha from '../pages/Armadilhas/armadilha';
 import EditarArmadilha from '../pages/Armadilhas/editarArmadilha';
 import CriarArmadilha from '../pages/Armadilhas/criarArmadilha';
-
-import Analisar from '../pages/Analisar';
+import ArmadilhaGeoJson from '../pages/Armadilhas/criarGeojson';
 
 import Perfil from '../pages/Perfil';
 import EditarPerfil from '../pages/Perfil/editarPerfil';
@@ -81,8 +83,6 @@ const MainTabNavigator = () => {
             iconName = 'users';
           } else if (route.name === 'Fazendas') {
             iconName = 'layers';
-          } else if (route.name === 'Analisar') {
-            iconName = 'camera';
           } else if (route.name === 'Perfil') {
             iconName = 'person-circle-outline';
           }
@@ -107,7 +107,6 @@ const MainTabNavigator = () => {
         <Tab.Screen name="Clientes" component={Clientes} options={{ headerShown: false }} />
       )}
       <Tab.Screen name="Fazendas" component={Fazendas} options={{ headerShown: false }} />
-      <Tab.Screen name="Analisar" component={Analisar} options={{ headerShown: false }} />
       <Tab.Screen name="Perfil" component={Perfil} options={{ headerShown: false }} />
     </Tab.Navigator>
   );
@@ -130,6 +129,7 @@ export default function AppRoutes() {
       <Stack.Screen name="CriarFazenda" component={CriarFazenda} options={{ headerShown: false }} />
       <Stack.Screen name="VerFazenda" component={VerFazenda} options={{ headerShown: false }} />
       <Stack.Screen name="EditarFazenda" component={EditarFazenda} options={{ headerShown: false }} />
+      <Stack.Screen name="FazendaGeoJson" component={FazendaGeoJson} options={{ headerShown: false }} />
 
       <Stack.Screen name="MapaPoligono" component={MapaPoligono} options={{ headerShown: false }} />
       <Stack.Screen name="MapaArmadilha" component={MapaArmadilha} options={{ headerShown: false }} />
@@ -139,9 +139,12 @@ export default function AppRoutes() {
       <Stack.Screen name="VerTalhao" component={VerTalhao} options={{ headerShown: false }} />
       <Stack.Screen name="EditarTalhao" component={EditarTalhao} options={{ headerShown: false }} />
       <Stack.Screen name="CriarTalhao" component={CriarTalhao} options={{ headerShown: false }} />
+      <Stack.Screen name="TalhaoGeoJson" component={TalhaoGeoJson} options={{ headerShown: false }} />
 
+      <Stack.Screen name="VerArmadilha" component={VerArmadilha} options={{ headerShown: false }} />
       <Stack.Screen name="EditarArmadilha" component={EditarArmadilha} options={{ headerShown: false }} />
       <Stack.Screen name="CriarArmadilha" component={CriarArmadilha} options={{ headerShown: false }} />
+      <Stack.Screen name="ArmadilhaGeoJson" component={ArmadilhaGeoJson} options={{ headerShown: false }} />
 
       <Stack.Screen name="EditarPerfil" component={EditarPerfil} options={{ headerShown: false }} />
     </Stack.Navigator>

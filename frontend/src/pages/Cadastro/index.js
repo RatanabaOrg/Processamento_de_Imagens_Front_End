@@ -58,6 +58,7 @@ export default function Cadastro() {
       bairro === '' || cidade === '' || uf === '' || complemento === '') return;
 
     try {
+      console.log('try')
       const response = await axios.post(`http://10.0.2.2:3000/usuario/cadastro`, {
         nome: nome, email: email, senha: senha, confirmarSenha: senha2,
         telefone: telefone,
