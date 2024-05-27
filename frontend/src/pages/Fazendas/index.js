@@ -23,8 +23,6 @@ export default function Fazendas() {
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const usuarioId = currentUser.uid;
-      
-      console.log("oiii");
 
       const response = await axios.get(`http://10.0.2.2:3000/usuario/${usuarioId}`, {
         headers: {
