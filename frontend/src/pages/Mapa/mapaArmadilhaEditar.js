@@ -16,10 +16,11 @@ export default function MapaArmadilhaEditar() {
 
         while (coordenadasObjeto === null) {
           const coordenadas = await AsyncStorage.getItem('poligno');
+          console.log(coordenadas)
           coordenadasObjeto = JSON.parse(coordenadas);
       
           if (coordenadasObjeto !== null) {
-            console.log(coordenadas);
+            // console.log(coordenadas);
             setMarkerCoordinate(coordenadasObjeto);
           } else {
             await new Promise(resolve => setTimeout(resolve, 100)); 
@@ -69,7 +70,7 @@ export default function MapaArmadilhaEditar() {
 
   const stopDrawing = (coordinate) => {
     const serializedPoints = JSON.stringify(coordinate);
-    console.log(coordinate);
+    // console.log(coordinate);
     AsyncStorage.setItem('poligno', serializedPoints);
   }
 

@@ -131,7 +131,10 @@ export default function EditarTalhao() {
             value={tipoPlantacao}
             onChangeText={(text) => setTipoPlantacao(text)} />
 
-          {coordenadas && (<MapaPoligonoEditar />)}
+          {coordenadas && 
+              <><Text style={styles.label}>Localização</Text>
+              <MapaPoligonoEditar /></>
+            }
         </View>
         </ScrollView>
 
