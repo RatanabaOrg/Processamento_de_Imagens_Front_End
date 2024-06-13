@@ -25,7 +25,7 @@ export default function VerTalhao() {
 
   const handleArmadilha = (armadilhaId) => {
     const fetchArmadilha = async () => {
-      AsyncStorage.clear();
+      AsyncStorage.removeItem("poligno");
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken(); const usuarioId = currentUser.uid;
 
@@ -74,13 +74,13 @@ export default function VerTalhao() {
   };
 
   const handleMap = () => {
-    AsyncStorage.clear();
+    AsyncStorage.removeItem("poligno");
     navigation.navigate('CriarArmadilha', { talhaoId: idtalhao });
   };
 
   useEffect(() => {
     const fetchTalhao = async () => {
-      await AsyncStorage.clear();
+      await AsyncStorage.removeItem("poligno");
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { talhaoId } = route.params;

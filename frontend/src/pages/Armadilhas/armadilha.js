@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import storage from '@react-native-firebase/storage';
 import firestore from '@react-native-firebase/firestore';
 import ImagePicker from 'react-native-image-crop-picker';
+import NetInfo from '@react-native-community/netinfo';
 
 export default function VerArmadilha() {
   const navigation = useNavigation();
@@ -19,15 +20,37 @@ export default function VerArmadilha() {
   const [refresh, setRefresh] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
   const [showSendButton, setShowSendButton] = useState(false);
+  const [showSendButtonImgs, setShowSendButtonImgs] = useState(false);
   const [pragas, setPragas] = useState(0);
+  const [hasImg, setHasImg] = useState(false)
+  const [isConnected, setIsConnected] = useState(null);
 
   const handleSeeMore = (armadilhaId) => {
     navigation.navigate('EditarArmadilha', { armadilhaId: armadilhaId });
   };
 
+  const saveData = async (key, value) => {
+    try {
+      const jsonValue = JSON.stringify(value);
+      await AsyncStorage.setItem(key, jsonValue);
+      console.log('Dados salvos com sucesso!');
+    } catch (e) {
+      console.error('Erro ao salvar dados', e);
+    }
+  };
+
+  const getData = async (key) => {
+    try {
+      const jsonValue = await AsyncStorage.getItem(key);
+      return jsonValue != null ? JSON.parse(jsonValue) : null;
+    } catch (e) {
+      console.error('Erro ao recuperar dados', e);
+    }
+  };
+
   const handleArmadilha = (armadilhaId) => {
     const fetchArmadilha = async () => {
-      AsyncStorage.clear();
+      AsyncStorage.removeItem("poligno");
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       try {
@@ -60,6 +83,7 @@ export default function VerArmadilha() {
     ImagePicker.openCamera({ cropping: false }).then(async image => {
       setCapturedImage(image);
       setShowSendButton(true);
+      setShowSendButtonImgs(false);
     }).catch(err => {
       console.log('Erro ao tirar foto da câmera:', err);
     });
@@ -70,44 +94,96 @@ export default function VerArmadilha() {
       const image = await ImagePicker.openPicker({ mediaType: 'photo' });
       setCapturedImage(image);
       setShowSendButton(true);
+      setShowSendButtonImgs(false);
     } catch (error) {
       console.log('Erro ao escolher imagem da galeria:', error);
     }
   };
 
   const handleSendImg = async () => {
-    if (capturedImage) {
-      const uri = capturedImage.path;
-      const imgName = uri.substring(uri.lastIndexOf('/') + 1);
-      const exit = imgName.split('.').pop();
-      const newName = `${imgName.split('.')[0]}${Date.now()}.${exit}`;
-      try {
-        const response = await storage().ref(`armadilha/${newName}`).putFile(uri);
-        const imgUrl = await storage().ref(`armadilha/${newName}`).getDownloadURL();
+    if (isConnected) {
+      if (capturedImage) {
+        if (hasImg) {
+          let data = await getData("1319")
+          data.push(capturedImage.path)
+          // console.log(data.length);
+          for (let d = 0; d < data.length; d++) {
 
-        await firebase.firestore().collection('Armadilha').doc(idArmadilha).update({
-          fotos: firebase.firestore.FieldValue.arrayUnion(imgUrl)
-        });
-        setShowSendButton(false);
+            const uri = data[d]
+            const imgName = uri.substring(uri.lastIndexOf('/') + 1);
+            const exit = imgName.split('.').pop();
+            const newName = `${imgName.split('.')[0]}${Date.now()}.${exit}`;
+            try {
+              const response = await storage().ref(`armadilha/${newName}`).putFile(uri);
+              const imgUrl = await storage().ref(`armadilha/${newName}`).getDownloadURL();
 
-        var { armadilhaId } = route.params;
+              await firebase.firestore().collection('Armadilha').doc(idArmadilha).update({
+                fotos: firebase.firestore.FieldValue.arrayUnion(imgUrl)
+              });
+              setShowSendButton(false);
+              setShowSendButtonImgs(false);
 
-        console.log(armadilhaId);
+              var { armadilhaId } = route.params;
 
-        await axios.get(`http://10.0.2.2:5000/image/${armadilhaId}`);
+              await axios.get(`http://10.0.2.2:5000/image/${armadilhaId}`);
 
-        setRefresh(prev => !prev);
-      } catch (error) {
-        console.log('Erro ao fazer upload da imagem:', error);
+              setRefresh(prev => !prev);
+            } catch (error) {
+              console.log('Erro ao fazer upload da imagem:', error);
+            }
+
+          }
+
+          await AsyncStorage.removeItem("1319")
+
+          setHasImg(false)
+
+        } else {
+          const uri = capturedImage.path;
+          const imgName = uri.substring(uri.lastIndexOf('/') + 1);
+          const exit = imgName.split('.').pop();
+          const newName = `${imgName.split('.')[0]}${Date.now()}.${exit}`;
+          try {
+            const response = await storage().ref(`armadilha/${newName}`).putFile(uri);
+            const imgUrl = await storage().ref(`armadilha/${newName}`).getDownloadURL();
+
+            await firebase.firestore().collection('Armadilha').doc(idArmadilha).update({
+              fotos: firebase.firestore.FieldValue.arrayUnion(imgUrl)
+            });
+            setShowSendButton(false);
+
+            var { armadilhaId } = route.params;
+
+            await axios.get(`http://10.0.2.2:5000/image/${armadilhaId}`);
+
+            setRefresh(prev => !prev);
+          } catch (error) {
+            console.log('Erro ao fazer upload da imagem:', error);
+          }
+        }
       }
+    } else {
+      if (!hasImg) {
+        await saveData("1319", [capturedImage.path])
+      } else {
+        let data = await getData("1319")
+        data.push(capturedImage.path)
+        await saveData("1319", data)
+      }
+      setShowSendButtonImgs(true);
+      setRefresh(prev => !prev);
     }
+    setShowSendButton(false);
+    setRefresh(prev => !prev);
+
   };
 
-  function handleDiscardImg() { setShowSendButton(false); }
+  function handleDiscardImg() { setShowSendButton(false); setShowSendButtonImgs(false) }
 
   useEffect(() => {
     const fetchArmadilha = async () => {
-      await AsyncStorage.clear();
+      // console.log(await getData("1319"));
+      await AsyncStorage.removeItem("poligno");
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { armadilhaId } = route.params;
@@ -126,14 +202,28 @@ export default function VerArmadilha() {
       } catch (error) {
         console.log('Erro ao buscar armadilha: ', error);
       }
+
+      if (await getData("1319") != null) {
+        setHasImg(true)
+      } else {
+        setHasImg(false)
+      }
     };
 
     fetchArmadilha();
-    const unsubscribe = navigation.addListener('focus', () => {
-      fetchArmadilha();
+    // const unsubscribe = navigation.addListener('focus', () => {
+    //   fetchArmadilha();
+    // });
+
+    // return unsubscribe;
+
+
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected);
     });
 
-    return unsubscribe;
+    // Cleanup the subscription on unmount
+    return () => unsubscribe();
   }, [navigation, route.params, refresh]);
 
 
@@ -145,7 +235,7 @@ export default function VerArmadilha() {
             <View style={styles.firstHalfContent}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackContainer}>
                 <Feather name="arrow-left" size={30} color="white" style={{ marginRight: 8 }} />
-                <Text style={styles.title}>Ver/Editar {armadilha.nomeArmadilha}</Text>
+                <Text style={styles.title}>{armadilha.nomeArmadilha}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -162,6 +252,12 @@ export default function VerArmadilha() {
         </View>
 
         <Text style={styles.soma}>Soma das pragas: {pragas}</Text>
+        <Text>
+          {isConnected ? 'Você está conectado à internet!' : 'Você está offline!'}
+        </Text>
+        <Text>
+          {hasImg ? 'Imagens não inviadas por falta de internet!' : null}
+        </Text>
 
         <ScrollView>
           <View style={styles.forthHalf}>
@@ -191,6 +287,14 @@ export default function VerArmadilha() {
             <Text style={styles.buttonText}>Enviar imagem</Text>
           </TouchableOpacity>
         )}
+        {
+          showSendButtonImgs && isConnected ? (
+            <TouchableOpacity style={styles.button} onPress={handleSendImg}>
+              <Feather name="upload" size={16} color="white" style={{ marginRight: 8 }} />
+              <Text style={styles.buttonText}>Enviar imagens</Text>
+            </TouchableOpacity>
+          ) : null
+        }
       </View>
     </SafeAreaView>
   );

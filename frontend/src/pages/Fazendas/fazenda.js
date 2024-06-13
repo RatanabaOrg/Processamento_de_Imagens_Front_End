@@ -46,13 +46,13 @@ export default function VerFazenda() {
   };
 
   const handleMap = () => {
-    AsyncStorage.clear();
+    AsyncStorage.removeItem("poligno");
     navigation.navigate('CriarTalhao', { fazendaId: idFazenda });
   };
 
   useEffect(() => {
     const fetchFazenda = async () => {
-      await AsyncStorage.clear();
+      await AsyncStorage.removeItem("poligno");
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { fazendaId } = route.params;
