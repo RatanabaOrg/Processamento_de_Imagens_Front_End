@@ -99,7 +99,12 @@ export default function VerTalhao() {
         var somaPragas = 0;
         for (let a = 0; a < armadilhas.length; a++) {
           if (armadilhas[a].pragas != undefined) {
-            somaPragas += armadilhas[a].pragas
+            let pragas = armadilhas[a].pragas
+            let sumPragas = 0
+            for (let p = 0; p < pragas.length; p++) {
+              sumPragas +=  pragas[p].quantidade
+            }
+            somaPragas += sumPragas
           }
         }
         setPragas(somaPragas);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
@@ -9,7 +9,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import storage from '@react-native-firebase/storage';
 import firestore from '@react-native-firebase/firestore';
 import ImagePicker from 'react-native-image-crop-picker';
+import { Picker } from '@react-native-picker/picker';
 import NetInfo from '@react-native-community/netinfo';
+import { BarChart } from 'react-native-chart-kit';
+import { Dimensions } from 'react-native';
 
 export default function VerArmadilha() {
   const navigation = useNavigation();
@@ -24,6 +27,11 @@ export default function VerArmadilha() {
   const [pragas, setPragas] = useState(0);
   const [hasImg, setHasImg] = useState(false)
   const [isConnected, setIsConnected] = useState(null);
+  const [selectedMonth, setSelectedMonth] = useState(0);
+  const [data2, setData] = useState([]);
+  const [media, setMedia] = useState([]);
+
+  const screenWidth = Dimensions.get("window").width;
 
   const handleSeeMore = (armadilhaId) => {
     navigation.navigate('EditarArmadilha', { armadilhaId: armadilhaId });
@@ -37,6 +45,36 @@ export default function VerArmadilha() {
     } catch (e) {
       console.error('Erro ao salvar dados', e);
     }
+  };
+
+  const data = {
+    labels: ["Dec/23", "Jan/24", "Feb/24", "Mar/24", "Apr/24", "May/24", "Jun/24", "Jul/24"],
+    datasets: [
+      {
+        data: [20, 45, 28, 80, 99, 43, 20, 28],
+      }
+    ]
+  };
+
+  const chartConfig = {
+    backgroundGradientFrom: "#E9EEEB",
+    backgroundGradientTo: "#E9EEEB",
+    color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`,
+    labelColor: (opacity = 1) => `rgb(0, 0, 0)`,
+    style: {
+      borderRadius: 16
+    },
+    propsForDots: {
+      r: "6",
+      strokeWidth: "2",
+      stroke: "#ffa726"
+    },
+    barPercentage: 0.8,
+    useShadowColorFromDataset: false,
+    decimalPlaces: 0,
+    fillShadowGradient: `rgba(0, 0, 255, 1)`,
+    fillShadowGradientOpacity: 1,
+    fillColor: `rgba(0, 0, 255, 1)`,
   };
 
   const getData = async (key) => {
@@ -154,7 +192,9 @@ export default function VerArmadilha() {
 
             var { armadilhaId } = route.params;
 
-            await axios.get(`http://10.0.2.2:5000/image/${armadilhaId}`);
+            console.log(armadilha.telefone);
+
+            await axios.get(`http://10.0.2.2:5000/image/${armadilhaId}/${armadilha.telefone}`);
 
             setRefresh(prev => !prev);
           } catch (error) {
@@ -196,8 +236,14 @@ export default function VerArmadilha() {
           }
         });
         setArmadilha(response.data);
-        if (response.data.pragas != undefined) {
-          setPragas(response.data.pragas)
+        const numPragas = response.data.pragas
+        let soma = 0;
+        if (numPragas != undefined) {
+          for (let p of numPragas) {
+            soma += p.quantidade 
+          }
+          console.log(soma)
+          setPragas(soma)
         }
       } catch (error) {
         console.log('Erro ao buscar armadilha: ', error);
@@ -222,9 +268,58 @@ export default function VerArmadilha() {
       setIsConnected(state.isConnected);
     });
 
-    // Cleanup the subscription on unmount
     return () => unsubscribe();
   }, [navigation, route.params, refresh]);
+
+  useEffect(() => {
+   fetchData(selectedMonth);
+   fetchMedia(selectedMonth)
+  }, [selectedMonth]);
+
+  const fetchData = async (month) => {
+    try {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { armadilhaId } = route.params;
+      console.log(armadilhaId)
+      const response = await axios.get(`http://10.0.2.2:3000/armadilha/${armadilhaId}/${month}`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      setData(response.data);
+      
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  const fetchMedia = async (month) => {
+    try {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const { armadilhaId } = route.params;
+      const response = await axios.get(`http://10.0.2.2:3000/armadilha/${armadilhaId}/media/${month}`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+          
+      setMedia(response.data.mediaFormatada);
+      
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  const baseWidth = screenWidth - 60;
+  const additionalWidthPerColumn = 50;
+  
+  const dynamicWidth = (data2 && data2.labels && data2.labels.length > 5) 
+    ? baseWidth + (data2.labels.length - 5) * additionalWidthPerColumn
+    : baseWidth;
 
 
   return (
@@ -251,7 +346,7 @@ export default function VerArmadilha() {
           </View>
         </View>
 
-        <Text style={styles.soma}>Soma das pragas: {pragas}</Text>
+        <Text style={styles.pragas}>Soma das pragas: {pragas? pragas: ""}</Text>
         <Text>
           {isConnected ? 'Você está conectado à internet!' : 'Você está offline!'}
         </Text>
@@ -280,6 +375,56 @@ export default function VerArmadilha() {
             </View>
           </View>
         </ScrollView>
+
+        {!showSendButton && (
+          <>
+          <Text style={styles.pragas}>Média de pragas: {media? media : ""}</Text>
+
+          <View style={styles.grafico}>
+            <View style={styles.graficoTop}>
+              <Text style={styles.graficoTitle}>Total de pragas</Text>
+              <Picker
+                selectedValue={selectedMonth}
+                style={{ height: 50, width: 150 }}
+                onValueChange={(itemValue, itemIndex) => {
+                  setSelectedMonth(itemValue);
+                } }
+              >
+                <Picker.Item label="Todos" value={0} />
+                <Picker.Item label="Janeiro" value={1} />
+                <Picker.Item label="Fevereiro" value={2} />
+                <Picker.Item label="Março" value={3} />
+                <Picker.Item label="Abril" value={4} />
+                <Picker.Item label="Maio" value={5} />
+                <Picker.Item label="Junho" value={6} />
+                <Picker.Item label="Julho" value={7} />
+                <Picker.Item label="Agosto" value={8} />
+                <Picker.Item label="Setembro" value={9} />
+                <Picker.Item label="Outubro" value={10} />
+                <Picker.Item label="Novembro" value={11} />
+                <Picker.Item label="Dezembro" value={12} />
+              </Picker>
+            </View>
+              <ScrollView horizontal>
+                {data2 && data2.datasets && data2.datasets[0] && data2.datasets[0].data.length > 0 ?
+                <BarChart
+                  style={styles.chart}
+                  data={data2}
+                  width={dynamicWidth}
+                  height={220}
+                  chartConfig={chartConfig}
+                  verticalLabelRotation={0}
+                  showValuesOnTopOfBars={true}
+                  withHorizontalLabels={true}
+                  fromZero={true}
+      yAxisLabel=""
+      yAxisSuffix=""
+      segments={5} 
+      yLabelsOffset={50}/>
+                : <Text>Não há dados nesse período</Text>}
+              </ScrollView>  
+            </View></>
+        )}
 
         {showSendButton && (
           <TouchableOpacity style={styles.button} onPress={handleSendImg}>
@@ -340,42 +485,21 @@ const styles = StyleSheet.create({
   secondHalfInputs: {
     marginTop: 45,
   },
-  label: {
-    fontSize: 16,
-    marginBottom: 5,
-    color: '#000'
-  },
-  input: {
-    height: 44,
-    fontSize: 15,
-    backgroundColor: '#ddd',
-    borderRadius: 12,
-    marginBottom: 8,
-    paddingHorizontal: 10,
-  },
   seeMore: {
     color: '#FF8C00',
     fontSize: 16,
     textAlign: 'right',
     fontWeight: '500',
   },
-  soma: {
+  pragas: {
     color: '#000',
     fontSize: 16,
     marginBottom: 16,
   },
-  armadilhas: {
-    color: '#000',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
 
   containerImport: {
     flex: 1,
-    // justifyContent: 'center',
-    // alignItems: 'center',
-    marginTop: 50,
+    marginTop: 20,
     width: '100%',
   },
   photoSend: {
@@ -398,7 +522,19 @@ const styles = StyleSheet.create({
     color: "#000",
     padding: 12,
   },
-
+  grafico: {
+    flex: 8,
+  },
+  graficoTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+  },
+  graficoTitle: {
+    fontSize: 20,
+    textAlign: 'center',
+    color: "#000",
+  },
   button: {
     backgroundColor: '#2C8C1D',
     borderRadius: 10,
