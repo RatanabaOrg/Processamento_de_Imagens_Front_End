@@ -34,12 +34,14 @@ export default function Fazendas() {
 
       try {
         if (response.data.cliente) {
+          console.log("estou aqui");
           const response = await axios.get(`http://10.0.2.2:3000/usuario/completo/${usuarioId}`, {
             headers: {
               'Authorization': `Bearer ${idToken}`,
               'Content-Type': 'application/json'
             }
           });
+          console.log(response.data);
           setFazendas(response.data.fazendas);
           setFilteredFazendas(response.data.fazendas);
         } else {

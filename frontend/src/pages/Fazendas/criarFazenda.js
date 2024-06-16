@@ -100,7 +100,7 @@ export default function CriarFazenda() {
         }
       );
 
-      await AsyncStorage.clear();
+      await AsyncStorage.removeItem("poligno");
 
       navigation.navigate('Main', { screen: 'Fazendas' });
     } catch (error) {

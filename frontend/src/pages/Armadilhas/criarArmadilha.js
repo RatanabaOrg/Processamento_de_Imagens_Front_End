@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
@@ -15,6 +15,37 @@ export default function CriarArmadilha() {
   const [nome, setNome] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
+  const [usuario, setUsuario] = useState(null);
+  const [usuarioAtual, setUsuarioAtual] = useState(null);
+
+  useEffect(() => {
+    const fetchUsuario = async () => {
+      const currentUser = firebase.auth().currentUser;
+      const idToken = await currentUser.getIdToken();
+      const id = await currentUser.uid;
+      setUsuarioAtual(currentUser.email)
+      try {
+        const response = await axios.get(`http://10.0.2.2:3000/usuario/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        console.log(response.data);
+        setUsuario(response.data);
+      } catch (error) {
+        console.log('Erro ao buscar usuários:', error);
+      }
+    };
+
+    fetchUsuario();
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchUsuario();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
 
   const handleCadastrar = async () => {
     try {
@@ -36,7 +67,8 @@ export default function CriarArmadilha() {
       const response = await axios.post(`http://10.0.2.2:3000/armadilha/cadastro`, {
         nomeArmadilha: nome,
         coordenada: coordenadasObjeto,
-        talhaoId: talhaoId
+        talhaoId: talhaoId,
+        telefone: usuario.telefone
       }, {
         headers: {
           'Authorization': `Bearer ${idToken}`,
