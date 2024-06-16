@@ -33,12 +33,12 @@ export default function VerFazenda() {
       [{
         text: "Cancelar",
         style: "cancel"
-      },{
+      }, {
         text: "Por GeoJson",
         onPress: () => {
-          navigation.navigate('TalhaoGeoJson', {fazendaId: idFazenda});
+          navigation.navigate('TalhaoGeoJson', { fazendaId: idFazenda });
         }
-      },{
+      }, {
         text: "Por mapa",
         onPress: (handleMap)
       }]
@@ -46,13 +46,13 @@ export default function VerFazenda() {
   };
 
   const handleMap = () => {
-    AsyncStorage.clear();
+    AsyncStorage.removeItem("poligno");
     navigation.navigate('CriarTalhao', { fazendaId: idFazenda });
   };
 
   useEffect(() => {
     const fetchFazenda = async () => {
-      await AsyncStorage.clear();
+      await AsyncStorage.removeItem("poligno");
       const currentUser = firebase.auth().currentUser;
       const idToken = await currentUser.getIdToken();
       const { fazendaId } = route.params;
@@ -85,7 +85,12 @@ export default function VerFazenda() {
           var armadilhas = talhoes[t].armadilha;
           for (let a = 0; a < armadilhas.length; a++) {
             if (armadilhas[a].pragas != undefined) {
-              somaPragas += armadilhas[a].pragas
+              let pragas = armadilhas[a].pragas
+              let sumPragas = 0
+              for (let p = 0; p < pragas.length; p++) {
+                sumPragas += pragas[p].quantidade
+              }
+              somaPragas += sumPragas
             }
           }
 
